@@ -45,18 +45,18 @@ export function icon(name: SvgFileNames, size?: "sm" | "normal" | "lg" | "xl" | 
 export function dl(dt: string, dd: string) {
     return `<dl><dt>${dt}</dt><dd>${dd}</dd></dl>`
 }
-export function p(string) {
-    return `<p>${string}</p>`
+export function p(child: string) {
+    return `<p>${child}</p>`
 }
-export function paper(child, title?) {
+export function paper(child: string, title?: string) {
     let titleStr = title ? `<div class="box_title">${title}</div>` : ``
     return `<div class="box">${titleStr}${child}</div>`
 }
 
-export function sub(child) {
+export function sub(child: string) {
     return `<sub>${child}</sub>`
 }
-export function stack(arr, props: any = {}) {
+export function stack(arr: string[], props: any = {}) {
     let class_attr = ''
     if (props.class) {
         class_attr = ` ${props.class}`
@@ -66,7 +66,7 @@ export function stack(arr, props: any = {}) {
         </div>`
 }
 
-export function style(child, style: StandardPropertiesHyphen = {}) {
+export function style(child: string, style: StandardPropertiesHyphen = {}) {
     return `<div ${style_class_to_str({ style })}>${child}</div>`
 }
 export function card(child: string) {
@@ -96,7 +96,7 @@ export function box(child: any[] | string, props: baseProps & Alignment = {}) {
         </div>`
 }
 
-export function image(url, props: baseProps & { width?: any, height?: any } = {}) {
+export function image(url: string, props: baseProps & { width?: any, height?: any } = {}) {
     append_class(props, 'img_box')
     if (!props?.style) {
         props.style = {}
@@ -122,7 +122,7 @@ export function link(child: string, href: string, props: baseProps = {}) {
     return `<a href="${href}"${style_class_to_str(props)}>${child}</a>`
 }
 
-function style_to_class(style) {
+function style_to_class(style: any) {
     if (typeof style == 'undefined' || !style || !Object.keys(style).length) {
         return null
     }
@@ -161,7 +161,7 @@ function append_style(props: baseProps, style: StandardPropertiesHyphen) {
     props.style = { ...props.style, ...style }
 }
 
-function style_class_to_str(props, append?: { style?: any, class?: any }) {
+function style_class_to_str(props: any, append?: { style?: any, class?: any }) {
     if (typeof props != 'object') {
         throw new Error('props not object')
     }
@@ -196,7 +196,7 @@ function style_class_to_str(props, append?: { style?: any, class?: any }) {
     return ''
 }
 
-export function expended(child) {
+export function expended(child: string) {
     return `<div style="flex:1;overflow:hidden;">${child}</div>`
 }
 
@@ -220,9 +220,9 @@ type Text = {
     size?: "sm" | "normal" | "lg" | "xl" | "2x"
     weight?: "bold" | "normal"
 }
-export function text(children, props: baseProps & Text = {}) {
-    if (typeof children != 'string') {
-        children = String(children)
+export function text(child: string | number, props: baseProps & Text = {}) {
+    if (typeof child != 'string') {
+        child = String(child)
     }
     if (!props.style) {
         props.style = {}
@@ -247,10 +247,10 @@ export function text(children, props: baseProps & Text = {}) {
     if (props?.weight) {
         style["font-weight"] = props.weight
     }
-    return `<span${style_class_to_str(props)}>${h(children)}</span>`
+    return `<span${style_class_to_str(props)}>${h(child)}</span>`
 }
 
-export function date(num) {
+export function date(num: number) {
     let def = Math.floor(Date.now() / 1000 - num)
     if (def < 60) {
         return `${def} seconds ago`
@@ -265,6 +265,7 @@ export function date(num) {
         return `${Math.floor(def / (3600 * 24))} days ago`
     }
 }
+
 type buttonProps = {
     variant?: "text" | "elevated" | "regular" | "filled"
     icon?: string,
@@ -332,46 +333,31 @@ export function elevatedButton(text: string, props: buttonProps = {}) {
     return button(text, props)
 }
 
-export function fadeIn(child) {
+export function fadeIn(child: string) {
     return `<div class="fadeIn">${child}</div>`
 }
 
-export function section(title, body) {
+export function section(title: string, body: string) {
     return `<div class="section"><div class="section_title">${title}</div><div class="section_body">${body}</div></div>`
 }
 
-export function ln(...args) {
+export function ln(...args: string[]) {
     return column(args, { gap: '5px', style: { "margin-bottom": "5px" } })
 }
 
-export function time(num) {
-    let def = Math.floor(new Date().getTime() / 1000) - num
-    if (def < 60) {
-        return `${def} seconds ago`
-    }
-    else if (def < 60 * 60) {
-        return `${Math.floor(def / 60)} minutes ago`
-    }
-    else if (def < 60 * 60 * 24) {
-        return `${Math.floor(def / 3600)} hours ago`
-    }
-    else {
-        return `${Math.floor(def / (3600 * 24))} days ago`
-    }
-}
 type field = {
     name: string, type?: "text" | "textarea" | "hidden" | "password" | "select" | "image_btn" | "image_preview", label?: string, des?: string, value?: any,
     selectOptions?: { name: string, value: any }[]
     selectDefaultValue?: any
 }
 type FormField = { name: string, label?: string, description?: string, value?: any, type?: string }
-function des(des) {
+function des(des: string) {
     return des ? `<div class="description">${h(des)}</div>` : ''
 }
 export function input(field: FormField) {
     let type = field?.type ? ` type="${field.type}"` : ''
     return `<input${type} type="text" name="${field.name}" value="${h(field.value)}"/>
-    ${des(field.description)}`
+    ${des(field.description ?? '')}`
 }
 export function password(field: FormField) {
     field.type = 'password'
@@ -379,7 +365,7 @@ export function password(field: FormField) {
 }
 export function textarea(field: FormField) {
     return `<textarea name="${field.name}">${h(field.value)}</textarea>
-    ${des(field.description)}`;
+    ${des(field.description ?? '')}`;
 }
 
 export function checkBox(props: { name: string, label: string, value: string }) {
@@ -409,15 +395,15 @@ export function select(field: FormField &
         }
     }
     else {
-        optStr = field.options.map(o => {
+        optStr = field?.options?.map(o => {
             if (typeof field.defaultValue != 'undefined' && field.defaultValue == o.value) {
                 return `<option value="${h(o.value)}" selected>${h(o.name)}</option>`
             }
             return `<option value="${h(o.value)}">${h(o.name)}</option>`
-        }).join("")
+        }).join("") ?? 'noOption'
     }
     return ` <select name="${field.name}">${optStr}</select>
-            ${des(field.description)}`;
+            ${des(field.description ?? '')}`;
 }
 export function hiddenField(field: { name: string, value: any }) {
     return `<input type="hidden" name="${field.name}" value="${h(field.value)}" />`
@@ -459,25 +445,14 @@ export function form(action: string, body: string | string[], props: PormProps =
         ${props.hiddenFields.map(f => `<input type="hidden" name="${f.name}" value="${h(f.value)}" />`).join("")}
         </form>`;
 }
-export function h(unsafe) {
+export function h(unsafe: string | number) {
     if (typeof unsafe == 'number') {
         unsafe = unsafe.toString()
     }
     if (!unsafe) {
         return ''
     }
+    let ad = 'adf'
     return unsafe.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 
-}
-
-function get_align_style(props): string[] {
-    if (!props) return []
-    let style = []
-    if (props.mainAxisAlignment) {
-        style.push('justify-content:' + props.mainAxisAlignment)
-    }
-    if (props.crossAxisAlignment) {
-        style.push('align-items:' + props.crossAxisAlignment)
-    }
-    return style
 }

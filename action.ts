@@ -1,8 +1,7 @@
 const { log } = console
 import { getCtx, Ctx } from "./context";
-import { components, } from "./component";
+import { components, ComponentRes } from "./component";
 import * as view from "./view";
-import fs from 'node:fs'
 
 let backrender_api_url = 'http://localhost:3001'
 const action = async () => {
@@ -53,6 +52,7 @@ const action = async () => {
     let c = components.get(component_name)
     if (typeof c != 'object') {
         ctx.err('component not found: ' + component_name)
+        return
     }
     // check component key
     let key
@@ -98,7 +98,7 @@ const action = async () => {
 
 }
 
-function handle_res(ctx: Ctx, res) {
+function handle_res(ctx: Ctx, res: ComponentRes) {
     let cssUpdated = ''
     if (Array.isArray(ctx._sys?.cssUpdated)) {
         cssUpdated = "\n" + ctx._sys.cssUpdated.map(e => `.${e.id} {${e.str}}`).join("\n")

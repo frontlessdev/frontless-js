@@ -3,7 +3,7 @@ import { getCtx, Ctx } from './context'
 import { h } from './view'
 import { makeId } from './utils'
 export type Json = { [k: string]: any }
-export type ComponentReturn = string | Json | void
+export type ComponentRes = string | Json | void
 export let components = new Map<string, { fn: any, methods: string[] }>()
 type keyType = {
     [k: string]: string | number | boolean

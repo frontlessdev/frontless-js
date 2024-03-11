@@ -29,7 +29,7 @@ export function append_route(path: string, handler: Handler) {
     routes.push({ path, handler, method: 'get' })
 }
 
-function route_match_path(route, ctx: Ctx): boolean {
+function route_match_path(route: Route, ctx: Ctx): boolean {
     // match home
     if (route.path == '/' && ctx.path == '') {
         return true
@@ -51,7 +51,7 @@ function route_match_path(route, ctx: Ctx): boolean {
     }
 
     // all path slices must match
-    let params = {}
+    let params: { [k: string]: string } = {}
     for (let [k, path_slice] of path_arr.entries()) {
         // got exact match
         if (path_slice == req_path_arr[k]) {

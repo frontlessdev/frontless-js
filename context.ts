@@ -46,7 +46,7 @@ export type Ctx = {
 
 const asyncLocalStorage = new AsyncLocalStorage();
 
-export function storeCtx(ctx, fn) {
+export function storeCtx(ctx: Ctx, fn: () => any) {
     return asyncLocalStorage.run(ctx, fn);
 }
 
@@ -55,16 +55,17 @@ export function getCtx(): Ctx {
 }
 
 
-export function initCtx(req, res, root_render, errorHandler) {
-    let cookies = []
+export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, layout: (body: string) => Promise<string>, errorHandler: (ctx: Ctx, error: any) => void) {
+
+    let cookies: string[] = []
     let setcookies = () => {
         if (cookies.length) {
             res.setHeader('Set-Cookie', cookies)
         }
     }
-    let appended_elements = []
+    let appended_elements: string[] = []
     let ctx: Ctx = {
-        req, res, params: {}, query: url_parse(req.url, true).query, locals: {}, path: '', html: '', body: {}, me: null, components_stack: [], component: { props: {}, action: '' },
+        req, res, params: {}, query: url_parse(req.url ?? '', true).query, locals: {}, path: '', html: '', body: {}, me: null, components_stack: [], component: { props: {}, action: '' },
         _sys: {
             isSent: false, totalQueries: 0, queries: []
         },
@@ -99,23 +100,24 @@ export function initCtx(req, res, root_render, errorHandler) {
             try {
                 if (appended_elements.length) {
                     if (typeof element == 'object') {
-                        html = await root_render(column([...appended_elements, ...element]))
+                        html = await layout(column([...appended_elements, ...element]))
                     }
                     else {
-                        html = await root_render(column([...appended_elements, element]))
+                        html = await layout(column([...appended_elements, element]))
                     }
                 }
                 if (typeof element == 'object') {
-                    html = await root_render(column(element))
+                    html = await layout(column(element))
                 }
                 else if (typeof element == 'string') {
-                    html = await root_render(element)
+                    html = await layout(element)
                 }
                 else {
                     html = "unknown output"
                 }
             } catch (e) {
                 errorHandler(ctx, e)
+                return
             }
             if (styleStore.length) {
                 head += gen_style()
@@ -162,7 +164,7 @@ export function initCtx(req, res, root_render, errorHandler) {
                 res.end();
             }
         },
-        err: (message) => {
+        err: (message: string) => {
             throw 'err:' + message
         }
     }
