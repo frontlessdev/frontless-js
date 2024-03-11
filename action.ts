@@ -28,7 +28,7 @@ const action = async () => {
             try {
                 let r = await jsonPost(backrender_api_url + '/api/verify', { act: 'confirm', entries: ctx.body.image_entries })
                 log('i r', r)
-                if (r.status == 'ok' && r?.images?.length > 0) {
+                if (r?.status == 'ok' && r?.images?.length > 0) {
                     ctx.body[key] = r.images
                 }
                 else {
@@ -123,7 +123,7 @@ function handle_res(ctx: Ctx, res: ComponentRes) {
 }
 export default action;
 
-async function jsonPost(url = "", data = {}) {
+async function jsonPost(url = "", data = {}): Promise<{ [k: string]: any }> {
     const response = await fetch(url, {
         method: "POST",
         mode: "cors",
@@ -135,5 +135,5 @@ async function jsonPost(url = "", data = {}) {
         referrerPolicy: "no-referrer",
         body: JSON.stringify(data),
     });
-    return await response.json();
+    return await response.json() as any;
 }
