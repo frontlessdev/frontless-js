@@ -1,10 +1,9 @@
 import * as view from './view'
 import { getCtx, Ctx } from './context'
-import { log } from 'libs/utils'
 import { h } from './view'
 import { makeId } from './utils'
-
-type inputFn = (key?: keyType, ...args) => any
+export type Json = { [k: string]: any }
+export type ComponentReturn = string | Json | void
 export let components = new Map<string, { fn: any, methods: string[] }>()
 type keyType = {
     [k: string]: string | number | boolean
@@ -12,19 +11,10 @@ type keyType = {
 type PropType = {
     [k: string]: any
 }
-// type Construct = (k?: keyType, defaultData?: DataType) => any
-type Methods = {
-    render: Function,
-    loadDate?: Function,
-    [k: string]: Function
-}
+
 type Args = [...Array<any>]
 export function newComponent<K extends Args, P extends PropType>(cmt: new (...args: K) => any): (...args: K) => any {
-    const methods = Object.getOwnPropertyNames(cmt.prototype).map(n => {
-        if (n != 'constructor') {
-            return n
-        }
-    }).filter(Boolean)
+    const methods = Object.getOwnPropertyNames(cmt.prototype).filter(n => n != 'constructor')
     let component_name = makeId()
     components.set(component_name, { fn: cmt, methods })
 
@@ -60,13 +50,8 @@ export function newComponent<K extends Args, P extends PropType>(cmt: new (...ar
     }) as any
 }
 
-export function newPage(cmt): () => any {
-
-    let methods = Object.getOwnPropertyNames(cmt.prototype).map(n => {
-        if (n != 'constructor') {
-            return n
-        }
-    })
+export function newPage(cmt: new () => any): () => any {
+    let methods = Object.getOwnPropertyNames(cmt.prototype).filter(n => n != 'constructor')
     let component_name = makeId()
     components.set(component_name, { fn: cmt, methods })
 
@@ -101,7 +86,7 @@ export function newPage(cmt): () => any {
     }
 }
 
-export function click(child, action, props: { target?: "self" | "modal", postData?: { [k: string]: any } } = {}) {
+export function click(child: string, action: string, props: { target?: "self" | "modal", postData?: { [k: string]: any } } = {}) {
     {
         if (!action) {
             action = ''
@@ -112,9 +97,10 @@ export function click(child, action, props: { target?: "self" | "modal", postDat
         else {
             var className = 'component_btn'
         }
+        let postDataStr = ''
         if (props?.postData && Object.keys(props.postData).length) {
             props.postData.testb = 123
-            var postDataStr = ` data-postdata="${h(JSON.stringify(props.postData))}"`
+            postDataStr = ` data-postdata="${h(JSON.stringify(props.postData))}"`
         }
         return `<a class="${className}"  component-action="${action}"${postDataStr ?? ''}>${child}</a>`;
     }
@@ -122,29 +108,29 @@ export function click(child, action, props: { target?: "self" | "modal", postDat
 
 export function dom() {
     return {
-        before(content) {
+        before(content: string) {
             return {
                 method: "before",
                 content
             }
         },
-        after(content) {
+        after(content: string) {
             return {
                 method: "after",
                 content
             }
-        }, append(content) {
+        }, append(content: string) {
             return {
                 method: "append",
                 content
             }
-        }, prepend(content) {
+        }, prepend(content: string) {
             return {
                 method: "prepend",
                 content
             }
         },
-        modal(content) {
+        modal(content: string) {
             return {
                 method: "modal",
                 content
@@ -153,11 +139,3 @@ export function dom() {
 
     }
 }
-// export const dom = {
-//     after(content) {
-//         return {
-//             method: "after",
-//             content
-//         }
-//     }
-// }
