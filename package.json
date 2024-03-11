@@ -1,0 +1,19 @@
+{
+  "name": "finaljs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lnlife/finaljs.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lnlife/finaljs/issues"
+  },
+  "homepage": "https://github.com/lnlife/finaljs#readme"
+}
