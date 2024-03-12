@@ -2,8 +2,7 @@ const { log } = console
 import { getCtx, Ctx } from "./context";
 import { components, ComponentRes } from "./component";
 import * as view from "./view";
-
-let backrender_api_url = 'http://localhost:3001'
+let apiUrl = process.env.FRONTLESS_API_DEV_URL ?? 'https://api.frontless.dev/v1'
 const action = async () => {
     let ctx = getCtx()
     // log('ctx.body', ctx.body)
@@ -12,15 +11,16 @@ const action = async () => {
             ctx.err('rocess.env.FRONTLESS_KEY is not set')
         }
         try {
-            let r = await jsonPost(backrender_api_url + '/api/geturl', { key: process.env.FRONTLESS_KEY })
+            let r = await jsonPost(apiUrl + '/geturl', { key: process.env.FRONTLESS_KEY })
             log('got r from action.ts', r)
-            let j: any = await r.json()
-            log('got j', j)
-            if (j.status == 'ok') {
-                ctx.json({ status: 'ok', preSignedUrl: j.preSignedUrl })
+            if (r.status == 'ok') {
+                ctx.json({ status: 'ok', preSignedUrl: r.preSignedUrl })
+            }
+            else {
+                ctx.err(r.err ?? 'failed to verify key')
             }
         } catch (e) {
-            ctx.err('failed to get url')
+            ctx.err('failed to get presigned url')
             log(e)
         }
         return
@@ -29,7 +29,7 @@ const action = async () => {
         let key = ctx.body.image_entries_name
         if (typeof ctx.body.image_entries == 'string' && ctx.body.image_entries.length > 1) {
             try {
-                let r = await jsonPost(backrender_api_url + '/api/verify', { act: 'confirm', entries: ctx.body.image_entries })
+                let r = await jsonPost(apiUrl + '/verify', { act: 'confirm', entries: ctx.body.image_entries, key: process.env.FRONTLESS_KEY })
                 log('i r', r)
                 if (r?.status == 'ok' && r?.images?.length > 0) {
                     ctx.body[key] = r.images

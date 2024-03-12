@@ -1,5 +1,6 @@
 // first character is letter, so that is can be used for HTML class name and id
 export function makeId(length = 8) {
+    console.log('making id len: ', length)
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const charactersLength = characters.length;

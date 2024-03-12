@@ -408,9 +408,14 @@ export function select(field: FormField &
 export function hiddenField(field: { name: string, value: any }) {
     return `<input type="hidden" name="${field.name}" value="${h(field.value)}" />`
 }
+
+// max: default 1, max 20
 export function useImage(field: { name: string, button?: string, max?: number }): [imgButton: string, imgPreview: string] {
     if (!field.max) {
         field.max = 1
+    }
+    if (field.max > 20) {
+        field.max = 20
     }
     if (!field.button) {
         field.button = button('upload')

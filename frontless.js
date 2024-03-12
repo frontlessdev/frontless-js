@@ -19,8 +19,7 @@ onClick(".modal_btn", async function (ele) {
             res = JSON.parse(res)
         }
         if (typeof res.css == 'string' && res.css.length > 0) {
-            log('appending dynamic css', res.css)
-            document.getElementById("dstyle").insertAdjacentHTML("beforeend", res.css)
+            update_dynamic_css(res.css)
         }
         let modal_body = document.querySelector(`.modal-body`)
         if (res.err) {
@@ -34,6 +33,13 @@ onClick(".modal_btn", async function (ele) {
         }, 100);
     })
 })
+
+// insert updated dynamic css
+function update_dynamic_css(css) {
+    log('updating css', css)
+    document.getElementById("dstyle").insertAdjacentHTML("beforeend", css)
+}
+
 // close modal by esc button
 document.onkeyup = function (e) {
     if (e.key === "Escape") {
@@ -114,7 +120,7 @@ on("change", ".form_image_input", async function (ele) {
     let box = image_boxes[box_id]
     let r1 = await jsonPost('/action', { action: 'beforuploading' })
     if (r1.status != 'ok') {
-        alert('unable to get token')
+        alert(r1.err ?? 'unable to get token')
         return
     }
     let btn = document.querySelector("#" + box_id)
@@ -214,8 +220,7 @@ function component_handle_res(component, res) {
         cmts.push(e)
     })
     if (typeof res.css == 'string' && res.css.length > 0) {
-        log('updating css')
-        document.getElementsByTagName('style')[0].outerHTML = res.css
+        update_dynamic_css(res.css)
     }
     for (let cmt of cmts) {
         if (res.act == 'refresh') {

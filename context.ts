@@ -67,7 +67,9 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
     let ctx: Ctx = {
         req, res, params: {}, query: url_parse(req.url ?? '', true).query, locals: {}, path: '', html: '', body: {}, me: null, components_stack: [], component: { props: {}, action: '' },
         _sys: {
-            isSent: false, totalQueries: 0, queries: []
+            isSent: false,
+            totalQueries: 0,
+            queries: [],
         },
         cookie: cookie.parse(req.headers.cookie || ''),
         json: (json: { [k: string]: any }) => {
@@ -75,7 +77,12 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
                 return
             }
             setcookies()
-            res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+            res.writeHead(200, {
+                "Content-Type": "application/json; charset=utf-8",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": 'GET,PUT,POST,DELETE',
+                "Access-Control-Allow-Headers": `Content-Type`
+            });
             res.end(JSON.stringify(json))
             ctx._sys.isSent = true
         },
