@@ -70,6 +70,7 @@ onSubmit(".component_form", async (ele) => {
             error_box.classList.add("form-error-box")
             ele.insertAdjacentElement("beforeend", error_box)
         }
+        add_loader(ele)
         component.classList.add("submitting")
         const formData = new FormData(ele);
         const formDataObject = Object.fromEntries(formData.entries());
@@ -84,14 +85,16 @@ onSubmit(".component_form", async (ele) => {
             component.classList.remove("submitting")
         }
         else {
-            let live_modal = document.querySelector(".commonModal")
-            if (live_modal) {
-                live_modal.remove()
-            }
             component_handle_res(component, res)
         }
     })
 })
+function add_loader(ele) {
+    ele.insertAdjacentHTML("beforeend", `<div class="loader"></div>`)
+}
+function remove_loader(ele) {
+    ele.querySelector(".loader").remove()
+}
 // close modal by Esc key
 function escapeHtml(s) {
     return s.replace(
@@ -179,6 +182,7 @@ onClick(".form_image_btn", async function (ele) {
 //
 function component_handle_res(component, res) {
     log('handle res', res)
+    let live_modal = document.querySelector(".commonModal")
     if (res.act == 'redirect') {
         log('redirecting')
         window.location.href = res.url;
@@ -186,14 +190,22 @@ function component_handle_res(component, res) {
     }
     else if (res.method == 'modal') {
         log('create modal')
-        component.append(modal_template())
-        let cm = document.querySelector(".commonModal")
-        cm.querySelector(".modal-body").innerHTML = res.content
+        if (!live_modal) {
+            component.insertAdjacentHTML("beforeend", modal_template())
+            let live_modal = document.querySelector(".commonModal")
+        }
+
+        live_modal.querySelector(".modal-body").innerHTML = res.content
         // cm.fadeIn("fast")
         setTimeout(() => {
-            cm.querySelector(".modal-body").querySelector("input:[type=text], textarea").focus();
+            live_modal.querySelector("input[type=text], textarea").focus();
         }, 100);
         return
+    }
+    else {
+        if (live_modal) {
+            live_modal.remove()
+        }
     }
     let name = component.getAttribute('name')
     let key = component.getAttribute('key')

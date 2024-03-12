@@ -12,7 +12,9 @@ import { parse as url_parse } from 'node:url';
 type HtmlErrorHandler = (ctx: Ctx, message: string) => void
 type MiddleWare = (ctx: Ctx, next: Function) => Promise<void>
 
-let root_render: (body: string) => Promise<string>
+let layout = (body: string) => {
+    return `<!doctype html><html><head></head><body>${body}</body><html>`
+}
 let middlewares: MiddleWare[] = []
 
 async function call_middleware(index: number, ctx: Ctx, route_handler: (...args: any) => any) {
@@ -78,7 +80,7 @@ let app = {
         const server = http.createServer(async (req, res) => {
             let appended_elements = []
             // js
-            if (req.url == '/finaljs.js') {
+            if (req.url == '/frontless.js') {
                 fs.readFile(__dirname + req.url, function (error, content) {
                     res.writeHead(200, { 'Content-Type': 'text/javascript' });
                     res.end(content, 'utf-8');
@@ -86,7 +88,7 @@ let app = {
                 return
             }
             // css
-            if (req.url == '/finaljs.css') {
+            if (req.url == '/frontless.css') {
                 fs.readFile(__dirname + req.url, function (error, content) {
                     res.writeHead(200, { 'Content-Type': 'text/css' });
                     res.end(content, 'utf-8');
@@ -98,7 +100,7 @@ let app = {
                 serve_static(req, res)
                 return
             }
-            let ctx = initCtx(req, res, root_render, app.errorHandler)
+            let ctx = initCtx(req, res, layout, app.errorHandler)
             // get POST form data 
             if (req.method == 'POST') {
                 const form = formidable({});
@@ -170,9 +172,9 @@ export function load_pages(path = 'pages') {
         if (fs.lstatSync(process.cwd() + '/' + filepath).isDirectory()) {
             load_pages(filepath)
         }
-        else if (filename == '_root.ts' || filename == '_root.js') {
+        else if (filename == '_layout.ts' || filename == '_layout.js') {
             let render_ = await import(process.cwd() + '/' + filepath)
-            root_render = render_.default
+            layout = render_.default
         }
         else {
             append_route_from_file({ path: filepath, name: filename })
@@ -235,7 +237,7 @@ function serve_static(req: http.IncomingMessage, res: http.ServerResponse) {
 type Config = {
     htmlErrorHandler?: HtmlErrorHandler,
 }
-export default function Finaljs(config: Config = {}) {
+export default function Frontless(config: Config = {}) {
     if (typeof config.htmlErrorHandler == 'function') {
         app.htmlErrorHandler = config.htmlErrorHandler
     }

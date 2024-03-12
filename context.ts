@@ -55,7 +55,7 @@ export function getCtx(): Ctx {
 }
 
 
-export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, layout: (body: string) => Promise<string>, errorHandler: (ctx: Ctx, error: any) => void) {
+export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, layout: (body: string) => Promise<string> | string, errorHandler: (ctx: Ctx, error: any) => void) {
 
     let cookies: string[] = []
     let setcookies = () => {
@@ -93,8 +93,8 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
             }
             ctx._sys.isSent = true
             let head = `
-            <script src="/finaljs.js"></script>
-    <style type="text/css" media="all">@import "/finaljs.css";</style>`
+            <script src="/frontless.js"></script>
+    <style type="text/css" media="all">@import "/frontless.css";</style>`
             let html
             // need to catch error because template support components
             try {

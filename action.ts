@@ -8,8 +8,11 @@ const action = async () => {
     let ctx = getCtx()
     // log('ctx.body', ctx.body)
     if (ctx.body.action == 'beforuploading') {
+        if (!process.env?.FRONTLESS_KEY) {
+            ctx.err('rocess.env.FRONTLESS_KEY is not set')
+        }
         try {
-            let r = await fetch(backrender_api_url + '/api/geturl')
+            let r = await jsonPost(backrender_api_url + '/api/geturl', { key: process.env.FRONTLESS_KEY })
             log('got r from action.ts', r)
             let j: any = await r.json()
             log('got j', j)
