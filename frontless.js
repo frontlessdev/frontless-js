@@ -93,6 +93,7 @@ onSubmit(".component_form", async (ele) => {
         else {
             component_handle_res(component, res)
         }
+        remove_loader(ele)
     })
 })
 function add_loader(ele) {
@@ -132,11 +133,14 @@ on("change", ".form_image_input", async function (ele) {
     let r = await fetch(r1.preSignedUrl, { method: 'POST', body: data })
     let j = await r.json()
     log('j', j)
-    if (j.status == 'ok') {
-        box.entries.push(j)
-        log('updating box:', box_id)
-        update_image_box(box_id)
+    if (j.err) {
+        alert(j.err)
     }
+    else if (j.status == 'ok') {
+        log('uploaded successfully')
+        box.entries.push(j)
+    }
+    update_image_box(box_id)
     ele.remove()
 })
 on("click", ".form_image_close_btn", function (ele) {

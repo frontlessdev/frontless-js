@@ -23,6 +23,14 @@ sub {
     justify-content: center;
 }
 
+dt {
+    font-weight: bold;
+}
+
+dd {
+    margin-left: 0;
+}
+
 /* button */
 
 button {
@@ -144,7 +152,6 @@ button:disabled {
     flex-direction: column;
     display: flex;
     align-items: stretch;
-    min-width: 500px;
 }
 
 .form-ln {
@@ -447,13 +454,16 @@ img {
 /* Modal Content/Box */
 .modal-content {
     background-color: #fefefe;
-    margin: 7% auto;
-    padding: 20px;
+    margin: 7% auto auto auto;
     border: 1px solid rgb(146, 146, 146);
     max-width: 500px;
     border-radius: 10px;
     padding: 10px;
     transition: margin 0.1s linear;
+}
+
+.modal-body {
+    padding: 0 5% 20px 5%;
 }
 
 /* The Close Button */

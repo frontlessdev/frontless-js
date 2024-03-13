@@ -368,7 +368,7 @@ export function textarea(field: FormField) {
     ${des(field.description ?? '')}`;
 }
 
-export function checkBox(props: { name: string, label: string, value: string }) {
+export function checkBox(props: { name: string, label: string, value: boolean }) {
     let id = makeId()
     let checked = props.value ? 'checked' : ''
     return `<div class="checkbox_container"><input name="${props.name}" value="checked" type="checkbox" id="${id}" ${checked}> <label for="${id}">${h(props.label)}</label></div>`
