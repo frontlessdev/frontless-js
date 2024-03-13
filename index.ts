@@ -108,7 +108,7 @@ let app = {
                     [ctx.body, ctx.files] = await form.parse(req);
                     for (let k in ctx.body) {
                         if (ctx.body[k].length == 1) {
-                            ctx.body[k] = ctx.body[k][0]
+                            ctx.body[k] = ctx.body[k][0]?.trim()
                         }
                     }
                 } catch (err) {

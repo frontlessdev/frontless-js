@@ -29,7 +29,7 @@ onClick(".modal_btn", async function (ele) {
             modal_body.innerHTML = res.html
         }
         setTimeout(() => {
-            modal_body.querySelectorAll('input[type="text"],textarea')[0]?.focus()
+            modal_body.querySelectorAll('input[type="text"],input[type="password"],textarea')[0]?.focus()
         }, 100);
     })
 })
@@ -55,7 +55,10 @@ onClick(".component_btn", async function (ele) {
         })
         let res = await jsonPost("/action", data)
         if (res.err) {
-            console.log('err:', res.err)
+            alert(res.err)
+            component.querySelectorAll("button").forEach(function (btn) {
+                btn.disabled = false
+            })
         }
         else {
             component_handle_res(component, res)
@@ -198,6 +201,11 @@ function component_handle_res(component, res) {
         window.location.href = res.url;
         return
     }
+    else if (res.act == 'refresh') {
+        log('refreshing')
+        window.location.reload();
+        return
+    }
     else if (res.method == 'modal') {
         log('create modal')
         if (!live_modal) {
@@ -208,7 +216,7 @@ function component_handle_res(component, res) {
         live_modal.querySelector(".modal-body").innerHTML = res.content
         // cm.fadeIn("fast")
         setTimeout(() => {
-            live_modal.querySelector("input[type=text], textarea").focus();
+            live_modal.querySelector(`input[type="text"],input[type="password"], textarea`).focus();
         }, 100);
         return
     }
@@ -227,11 +235,7 @@ function component_handle_res(component, res) {
         update_dynamic_css(res.css)
     }
     for (let cmt of cmts) {
-        if (res.act == 'refresh') {
-            window.location.reload();
-            return
-        }
-        else if (res.method == 'before') {
+        if (res.method == 'before') {
             cmt.insertAdjacentHTML("beforebegin", res.content)
         }
         else if (res.method == 'after') {

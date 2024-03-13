@@ -161,15 +161,7 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
             }
         },
         refresh: () => {
-            if (ctx.req.method == 'POST') {
-                ctx.json({ act: 'refresh' })
-            }
-            else {
-                res.writeHead(302, {
-                    'Location': '/'
-                });
-                res.end();
-            }
+            ctx.json({ act: 'refresh' })
         },
         err: (message: string) => {
             throw 'err:' + message

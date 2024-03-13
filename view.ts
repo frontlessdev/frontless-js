@@ -431,23 +431,23 @@ export function useImage(field: { name: string, button?: string, max?: number })
 export function formErrBox() {
     return `<div class="form-error-box"></div>`
 }
-type hiddenField = { name: string, value: any }
+type hiddenField = { [k: string]: string }
 type PormProps = {
-    hiddenFields?: hiddenField | hiddenField[]
+    hiddenFields?: hiddenField
 }
 export function form(action: string, body: string | string[], props: PormProps = {}) {
     if (Array.isArray(body)) {
         body = column(body, { gap: '10px' })
     }
-    if (!props.hiddenFields) {
-        props.hiddenFields = []
-    }
-    else if (!Array.isArray(props.hiddenFields)) {
-        props.hiddenFields = [props.hiddenFields]
+    let hiddenFieldsStr = ''
+    if (typeof props.hiddenFields != 'undefined') {
+        for (let k in props.hiddenFields) {
+            hiddenFieldsStr += `<input type="hidden" name="${k}" value="${h(props.hiddenFields[k])}" />`
+        }
     }
     return `<form action="" class="component_form" component-action="${action}">
     ${body}
-        ${props.hiddenFields.map(f => `<input type="hidden" name="${f.name}" value="${h(f.value)}" />`).join("")}
+        ${hiddenFieldsStr}
         </form>`;
 }
 export function h(unsafe: string | number) {
