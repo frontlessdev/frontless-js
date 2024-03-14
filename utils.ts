@@ -4,7 +4,7 @@ export function makeId(length = 8) {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const charactersLength = characters.length;
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-    const lettersLength = characters.length;
+    const lettersLength = letters.length;
     let counter = 0;
     while (counter < length) {
         if (counter == 0) {

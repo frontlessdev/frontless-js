@@ -5,7 +5,6 @@ import * as view from "./view";
 let apiUrl = process.env.FRONTLESS_API_DEV_URL ?? 'https://api.frontless.dev/v1'
 const action = async () => {
     let ctx = getCtx()
-    // log('ctx.body', ctx.body)
     if (ctx.body.action == 'beforuploading') {
         if (!process.env?.FRONTLESS_KEY) {
             ctx.err('rocess.env.FRONTLESS_KEY is not set')
@@ -46,7 +45,6 @@ const action = async () => {
             ctx.body[key] = []
         }
     }
-    log('ctx.body', ctx.body)
     let { component_key, component_name, component_action } = ctx.body
     if (typeof component_name != 'string' || typeof component_action != 'string' || !component_name || !component_action) {
         ctx.err('no componnet name or action')

@@ -16,6 +16,7 @@ let layout = (body: string) => {
     return `<!doctype html><html><head></head><body>${body}</body><html>`
 }
 let middlewares: MiddleWare[] = []
+let append_css = ''
 
 async function call_middleware(index: number, ctx: Ctx, route_handler: (...args: any) => any) {
     let nextFn
@@ -91,7 +92,7 @@ let app = {
             if (req.url == '/frontless.css') {
                 fs.readFile(__dirname + req.url, function (error, content) {
                     res.writeHead(200, { 'Content-Type': 'text/css' });
-                    res.end(content, 'utf-8');
+                    res.end(content + "\n/* appended css */\n" + append_css, 'utf-8');
                 })
                 return
             }
@@ -172,11 +173,14 @@ export function load_pages(path = 'pages') {
         if (fs.lstatSync(process.cwd() + '/' + filepath).isDirectory()) {
             load_pages(filepath)
         }
-        else if (filename == '_layout.ts' || filename == '_layout.js') {
+        else if (filename == '_layout.ts') {
             let render_ = await import(process.cwd() + '/' + filepath)
             layout = render_.default
         }
-        else {
+        else if (filename == '_layout.css') {
+            append_css += fs.readFileSync(filepath, { encoding: 'utf8', flag: 'r' })
+        }
+        else if (filename.match(/\.ts$/)) {
             append_route_from_file({ path: filepath, name: filename })
         }
     })
