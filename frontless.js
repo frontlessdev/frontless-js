@@ -298,7 +298,7 @@ function handle_component_btn_click(ele, cb) {
 function modal_template() {
     setTimeout(() => {
         document.getElementsByClassName("modal")[0].style.opacity = 1
-        document.getElementsByClassName("modal-content")[0].style.margin = '10% auto'
+        document.getElementsByClassName("modal-content")[0].style.margin = '5% auto'
     }, 1);
     return `<div  class="commonModal modal">
     <div class="modal-content">

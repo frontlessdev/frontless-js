@@ -195,6 +195,11 @@ textarea {
     gap: 5px;
 }
 
+.radio_box {
+    display: flex;
+    gap: 10px;
+}
+
 select {
     font-size: 16px;
 }
@@ -454,7 +459,7 @@ img {
 /* Modal Content/Box */
 .modal-content {
     background-color: #fefefe;
-    margin: 7% auto auto auto;
+    margin: 2% auto auto auto;
     border: 1px solid rgb(146, 146, 146);
     max-width: 500px;
     border-radius: 10px;

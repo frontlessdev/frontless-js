@@ -374,7 +374,16 @@ export function checkBox(props: { name: string, label: string, value: boolean })
     return `<div class="checkbox_container"><input name="${props.name}" value="checked" type="checkbox" id="${id}" ${checked}> <label for="${id}">${h(props.label)}</label></div>`
 }
 
-export type selectOption = { name: string, value: any }
+export function radio(props: { name: string, options: { label: string, value: string }[], value?: string }) {
+    let radioOptions = []
+    for (let option of props.options) {
+        let checked = option.value == props.value ? ' checked' : ''
+        radioOptions.push(`<label><input type="radio" name="${props.name}" value="${h(option.value)}"${checked}/> ${h(option.label)}</label>`)
+    }
+    return `<div class="radio_box">${radioOptions.join("")}</div>`
+}
+
+export type selectOption = { label: string, value: any }
 export type groupOption = { label: string, options: selectOption[] }
 export function select(field: FormField &
 { options?: selectOption[], groupedOptions?: groupOption[], defaultValue?: any }) {
@@ -387,9 +396,9 @@ export function select(field: FormField &
             optStr += `<optgroup label="${h(group.label)}">`
             optStr += group.options.map(o => {
                 if (typeof field.defaultValue != 'undefined' && field.defaultValue == o.value) {
-                    return `<option value="${h(o.value)}" selected>${h(o.name)}</option>`
+                    return `<option value="${h(o.value)}" selected>${h(o.label)}</option>`
                 }
-                return `<option value="${h(o.value)}">${h(o.name)}</option>`
+                return `<option value="${h(o.value)}">${h(o.label)}</option>`
             }).join("")
             optStr += '</optgroup>'
         }
@@ -397,18 +406,14 @@ export function select(field: FormField &
     else {
         optStr = field?.options?.map(o => {
             if (typeof field.defaultValue != 'undefined' && field.defaultValue == o.value) {
-                return `<option value="${h(o.value)}" selected>${h(o.name)}</option>`
+                return `<option value="${h(o.value)}" selected>${h(o.label)}</option>`
             }
-            return `<option value="${h(o.value)}">${h(o.name)}</option>`
+            return `<option value="${h(o.value)}">${h(o.label)}</option>`
         }).join("") ?? 'noOption'
     }
     return ` <select name="${field.name}">${optStr}</select>
             ${des(field.description ?? '')}`;
 }
-export function hiddenField(field: { name: string, value: any }) {
-    return `<input type="hidden" name="${field.name}" value="${h(field.value)}" />`
-}
-
 // max: default 1, max 20
 export function useImage(field: { name: string, button?: string, max?: number }): [imgButton: string, imgPreview: string] {
     if (!field.max) {
