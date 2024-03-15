@@ -6,7 +6,7 @@ onClick(".modal-close-btn", (ele) => {
 
 // open a modal
 onClick(".modal_btn", async function (ele) {
-    handle_component_btn_click(ele, async (component, data) => {
+    handle_component_btn_click(ele, async (component, data, action_url) => {
         // check modl already exists
         let modal = document.querySelector(".commonModal")
         if (!modal) {
@@ -14,7 +14,7 @@ onClick(".modal_btn", async function (ele) {
             modal = document.querySelector(`.commonModal`)
             modal.style.display = 'block'
         }
-        let res = await jsonPost("/action", data)
+        let res = await jsonPost(action_url, data)
         if (typeof res == 'string') {
             res = JSON.parse(res)
         }
@@ -49,11 +49,11 @@ document.onkeyup = function (e) {
 
 // general component button clicking
 onClick(".component_btn", async function (ele) {
-    handle_component_btn_click(ele, async (component, data) => {
+    handle_component_btn_click(ele, async (component, data, action_url) => {
         component.querySelectorAll("button").forEach(function (btn) {
             btn.disabled = true
         })
-        let res = await jsonPost("/action", data)
+        let res = await jsonPost(action_url, data)
         if (res.err) {
             alert(res.err)
             component.querySelectorAll("button").forEach(function (btn) {
@@ -68,7 +68,7 @@ onClick(".component_btn", async function (ele) {
 
 // component form
 onSubmit(".component_form", async (ele) => {
-    handle_component_btn_click(ele, async (component, data) => {
+    handle_component_btn_click(ele, async (component, data, action_url) => {
         if (component.classList.contains("submitting")) {
             log('is submitting..')
             return
@@ -86,7 +86,7 @@ onSubmit(".component_form", async (ele) => {
         data = { ...data, ...formDataObject }
         log('data', data)
         component.querySelector(".form-error-box").style.display = 'none'
-        let res = await jsonPost("/action", data)
+        let res = await jsonPost(action_url, data)
         component.classList.remove("submitting")
         if (res.err) {
             component.querySelector(".form-error-box").innerHTML = res.err
@@ -282,35 +282,36 @@ function handle_component_btn_click(ele, cb) {
         log('component not found')
         return
     }
-    let data = {
-        component_name: component.getAttribute('name'),
-        component_key: component.getAttribute('key')
-    }
-    data.component_action = component_action
+    let action_url = '/action/' + component.getAttribute('name') + '/' + component_action
+    log('action_url', action_url)
+    let data = { component_key: component.getAttribute('key') }
     if (ele.getAttribute('data-postdata')) {
         let postdata = JSON.parse(ele.getAttribute('data-postdata'))
         for (let [k, v] of Object.entries(postdata)) {
             data[k] = v
         }
     }
-    cb(component, data)
+    cb(component, data, action_url)
 }
 function modal_template() {
     setTimeout(() => {
-        document.getElementsByClassName("modal")[0].style.opacity = 1
-        document.getElementsByClassName("modal-content")[0].style.margin = '5% auto'
+        document.getElementsByClassName("modal-container")[0].style.opacity = 1
+        document.getElementsByClassName("modal-content")[0].style.transform = 'scale(1)'
     }, 1);
-    return `<div  class="commonModal modal">
+    return `<div  class="commonModal modal-container">
+    <div class="modal">
     <div class="modal-content">
         <div class="modal-title"><span class="modal-close-btn">&times;</span></div>
         <div class="modal-body"><div class="loader"></div></div>
+    </div>
     </div>
     </div>`
 }
 
 function close_modal() {
-    let ele = document.getElementsByClassName("modal")[0]
+    let ele = document.getElementsByClassName("modal-container")[0]
     if (ele) {
+        document.getElementsByClassName("modal-content")[0].style.transform = 'scale(0.5)'
         ele.style.opacity = 0
         setTimeout(() => {
             ele.remove()
@@ -320,6 +321,7 @@ function close_modal() {
 
 
 async function jsonPost(url = "", data = {}) {
+    log('posting ', url, "\ndata ", data)
     const response = await fetch(url, {
         method: "POST",
         mode: "cors",

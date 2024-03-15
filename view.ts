@@ -305,10 +305,13 @@ export function button(text: string, props: buttonProps = {}) {
     }
     else if (props?.size == "lg") {
         style['font-size'] = '1.2em'
+        style['padding'] = '12px'
     }
     else if (props?.size == "xl") {
         style['font-size'] = '1.5em'
+        style['padding'] = '18px'
     }
+    props.style = style
     props.class.push('button-' + props.variant)
     let icon = props?.icon ?? ''
     let disabled = props?.disabled ? ' disabled' : ''

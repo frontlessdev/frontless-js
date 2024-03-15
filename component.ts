@@ -15,9 +15,12 @@ type PropType = {
 type Args = [...Array<any>]
 export function newComponent<K extends Args, P extends PropType>(cmt: new (...args: K) => any): (...args: K) => any {
     const methods = Object.getOwnPropertyNames(cmt.prototype).filter(n => n != 'constructor')
-    let component_name = makeId()
+    let component_name = cmt.name || makeId()
+    if (components.has(component_name)) {
+        console.log('Err: duplicated component name: ', component_name)
+        process.exit(1)
+    }
     components.set(component_name, { fn: cmt, methods })
-
     // generate callable function
     return (async (...args: K) => {
         let i = new cmt(...args)

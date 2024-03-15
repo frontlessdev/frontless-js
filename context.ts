@@ -4,6 +4,7 @@ import cookie from 'cookie'
 import { parse as url_parse } from 'node:url';
 import { column } from './view';
 import { styleStore } from './view';
+import { appConfig } from '.';
 
 interface req extends http.IncomingMessage {
     body?: any
@@ -22,6 +23,7 @@ export type Ctx = {
     query: { [k: string]: any }
     path: string
     locals: any
+    ipAddress?: string,
     components_stack: any[]
     cookie: any
     setcookie: (name: string, value: string, days?: number) => void
@@ -132,6 +134,7 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
                 <script>
                 console.log('total Queries',${ctx._sys.totalQueries})
                 </script>`)
+                html = html.replace(/\n\s+/g, "\n")
             }
             res.writeHead(200, {
                 "Content-Type": "text/html; charset=utf-8",
@@ -166,6 +169,14 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
         err: (message: string) => {
             throw 'err:' + message
         }
+    }
+    let ph = appConfig.proxyHeader ?? 'x-forwarded-for'
+    let ipaddress = req.headers[ph] ?? req.socket.remoteAddress
+    if (Array.isArray(ipaddress)) {
+        ctx.ipAddress = ipaddress[0]
+    }
+    else {
+        ctx.ipAddress = ipaddress
     }
     return ctx
 }

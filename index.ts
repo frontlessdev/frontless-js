@@ -6,11 +6,16 @@ import { storeCtx, initCtx } from './context';
 import path from 'node:path';
 import formidable from 'formidable';
 import action from './action';
-import cookie from 'cookie'
-import * as view from './view';
-import { parse as url_parse } from 'node:url';
+
 type HtmlErrorHandler = (ctx: Ctx, message: string) => void
 type MiddleWare = (ctx: Ctx, next: Function) => Promise<void>
+type Config = {
+    htmlErrorHandler?: HtmlErrorHandler,
+    proxyHeader?: string
+}
+export let appConfig: Config = {
+
+}
 
 let layout = (body: string) => {
     return `<!doctype html><html><head></head><body>${body}</body><html>`
@@ -92,7 +97,21 @@ let app = {
             if (req.url == '/frontless.css') {
                 fs.readFile(__dirname + req.url, function (error, content) {
                     res.writeHead(200, { 'Content-Type': 'text/css' });
-                    res.end(content + "\n/* appended css */\n" + append_css, 'utf-8');
+                    if (error) {
+                        res.end('/* error reading frontless.css */', 'utf-8');
+                    }
+                    else {
+                        let appendCssFilePath = process.cwd() + '/pages/_layout.css'
+                        if (!append_css.length || process.env.NODE_ENV == 'development') {
+                            if (fs.existsSync(appendCssFilePath)) {
+                                append_css = fs.readFileSync(appendCssFilePath, { encoding: 'utf8', flag: 'r' })
+                            }
+                            else {
+                                append_css = "\n/* no append file */"
+                            }
+                        }
+                        res.end(content + "\n/* appended css */\n" + append_css, 'utf-8');
+                    }
                 })
                 return
             }
@@ -122,7 +141,7 @@ let app = {
 
             // route
             let page_handler: () => void
-            if (req.url == '/action') {
+            if (req.url?.match(/\/action\/[\d\w]+\/[\d\w]+/)) {
                 page_handler = action
             }
             else {
@@ -176,9 +195,6 @@ export function load_pages(path = 'pages') {
         else if (filename == '_layout.ts') {
             let render_ = await import(process.cwd() + '/' + filepath)
             layout = render_.default
-        }
-        else if (filename == '_layout.css') {
-            append_css += fs.readFileSync(filepath, { encoding: 'utf8', flag: 'r' })
         }
         else if (filename.match(/\.ts$/)) {
             append_route_from_file({ path: filepath, name: filename })
@@ -238,13 +254,12 @@ function serve_static(req: http.IncomingMessage, res: http.ServerResponse) {
     });
 }
 
-type Config = {
-    htmlErrorHandler?: HtmlErrorHandler,
-}
+
 export default function Frontless(config: Config = {}) {
     if (typeof config.htmlErrorHandler == 'function') {
         app.htmlErrorHandler = config.htmlErrorHandler
     }
+    appConfig = config
     return app
 }
 
