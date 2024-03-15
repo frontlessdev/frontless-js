@@ -141,7 +141,8 @@ let app = {
 
             // route
             let page_handler: () => void
-            if (req.url?.match(/\/action\/[\d\w]+\/[\d\w]+/)) {
+            if (req.url?.match(/\/action\/[\d\w_\-]+\/[\d\w_\-]+/)) {
+                console.log('matched ', req.url)
                 page_handler = action
             }
             else {
@@ -157,7 +158,7 @@ let app = {
                     }
                 }
                 else {
-                    res.end('path not found');
+                    res.end('path not found' + req.url);
                     return
                 }
             }
