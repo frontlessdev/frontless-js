@@ -23,6 +23,13 @@ sub {
     justify-content: center;
 }
 
+.paper {
+    margin: 10px;
+    padding: 10px;
+    border: #999 2px solid;
+    box-shadow: 10px 5px 5px #999;
+}
+
 dl {
     margin: 5px 0;
 }
@@ -483,7 +490,7 @@ img {
 .modal-content {
     background-color: #fefefe;
     border: 1px solid rgb(146, 146, 146);
-    min-width: 450px;
+    min-width: 350px;
     max-width: 500px;
     max-height: 80%;
     display: flex;

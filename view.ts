@@ -48,10 +48,27 @@ export function dl(dt: string, dd: string) {
 export function p(child: string) {
     return `<p>${child}</p>`
 }
-export function paper(child: string, title?: string) {
-    let titleStr = title ? `<div class="box_title">${title}</div>` : ``
-    return `<div class="box">${titleStr}${child}</div>`
+export function paper(child: string) {
+    return `<div class="paper">${child}</div>`
 }
+
+export function h1(heading: string) {
+    return `<h1>${heading}</h1>`
+}
+
+export function h2(heading: string) {
+    return `<h2>${heading}</h2>`
+}
+export function h3(heading: string) {
+    return `<h3>${heading}</h3>`
+}
+export function h4(heading: string) {
+    return `<h4>${heading}</h4>`
+}
+export function list(...args: string[]) {
+    return `<ul>${args.map(content => `<li>${content}</li>`).join("")}</ul>`
+}
+
 
 export function sub(child: string) {
     return `<sub>${child}</sub>`
