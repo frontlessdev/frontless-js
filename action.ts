@@ -15,7 +15,7 @@ const action = async () => {
         ctx.err('no component or action')
     }
 
-    if (ctx.body.action == 'beforuploading') {
+    if (component_name == 'builtin_image' && component_action == 'beforuploading') {
         if (!process.env?.FRONTLESS_KEY) {
             ctx.err('rocess.env.FRONTLESS_KEY is not set')
         }
@@ -41,22 +41,25 @@ const action = async () => {
                 let r = await jsonPost(apiUrl + '/verify', { act: 'confirm', entries: ctx.body.image_entries, key: process.env.FRONTLESS_KEY })
                 log('i r', r)
                 if (r?.status == 'ok' && r?.images?.length > 0) {
-                    ctx.body[key] = r.images
+                    ctx.bodyArrays[key] = r.images
                 }
                 else {
-                    ctx.body[key] = []
+                    ctx.bodyArrays[key] = []
                 }
             } catch (e) {
                 log('failed parse img')
-                ctx.body[key] = []
+                ctx.bodyArrays[key] = []
+            }
+            if (ctx.bodyArrays[key].length) {
+                ctx.body[key] = ctx.bodyArrays[key][0]
             }
         }
         else {
-            ctx.body[key] = []
+            ctx.bodyArrays[key] = []
         }
     }
     let { component_key } = ctx.body
-    if (typeof component_name != 'string' || typeof component_action != 'string' || !component_name || !component_action) {
+    if (typeof component_key != 'string' || typeof component_name != 'string' || typeof component_action != 'string' || !component_name || !component_action) {
         ctx.err('no componnet name or action')
     }
     // get component class by name
@@ -68,9 +71,9 @@ const action = async () => {
     // check component key
     let key
     try {
-        key = JSON.parse(component_key)
+        key = JSON.parse(component_key as string)
     } catch (e) {
-        throw 'failed to parse component_key'
+        throw 'failed to parse component_key ' + component_key
     }
     // check method exists
     if (!c.methods.includes(component_action)) {

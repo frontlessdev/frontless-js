@@ -6,7 +6,8 @@ import { storeCtx, initCtx } from './context';
 import path from 'node:path';
 import formidable from 'formidable';
 import action from './action';
-
+import { makeId } from './utils';
+export let staticVersion = makeId()
 type HtmlErrorHandler = (ctx: Ctx, message: string) => void
 type MiddleWare = (ctx: Ctx, next: Function) => Promise<void>
 type Config = {
@@ -21,6 +22,8 @@ let layout = (body: string) => {
     return `<!doctype html><html><head></head><body>${body}</body><html>`
 }
 let middlewares: MiddleWare[] = []
+
+const static_age = process.env.NODE_ENV == 'production' ? 3600 : 604800
 let append_css = ''
 
 async function call_middleware(index: number, ctx: Ctx, route_handler: (...args: any) => any) {
@@ -86,30 +89,27 @@ let app = {
         const server = http.createServer(async (req, res) => {
             let appended_elements = []
             // js
-            if (req.url == '/frontless.js') {
-                fs.readFile(__dirname + req.url, function (error, content) {
-                    res.writeHead(200, { 'Content-Type': 'text/javascript' });
+            if (req.url == `/main.${staticVersion}.js`) {
+                fs.readFile(__dirname + '/frontless.js', function (error, content) {
+                    res.writeHead(200, {
+                        'Content-Type': 'text/javascript',
+                        'Cache-Control': 'public, max-age=' + static_age
+                    });
                     res.end(content, 'utf-8');
                 })
                 return
             }
             // css
-            if (req.url == '/frontless.css') {
-                fs.readFile(__dirname + req.url, function (error, content) {
-                    res.writeHead(200, { 'Content-Type': 'text/css' });
+            if (req.url == `/main.${staticVersion}.css`) {
+                fs.readFile(__dirname + '/frontless.css', function (error, content) {
+                    res.writeHead(200, {
+                        'Content-Type': 'text/css',
+                        'Cache-Control': 'public, max-age=' + static_age
+                    });
                     if (error) {
                         res.end('/* error reading frontless.css */', 'utf-8');
                     }
                     else {
-                        let appendCssFilePath = process.cwd() + '/pages/_layout.css'
-                        if (!append_css.length || process.env.NODE_ENV == 'development') {
-                            if (fs.existsSync(appendCssFilePath)) {
-                                append_css = fs.readFileSync(appendCssFilePath, { encoding: 'utf8', flag: 'r' })
-                            }
-                            else {
-                                append_css = "\n/* no append file */"
-                            }
-                        }
                         res.end(content + "\n/* appended css */\n" + append_css, 'utf-8');
                     }
                 })
@@ -125,10 +125,16 @@ let app = {
             if (req.method == 'POST') {
                 const form = formidable({});
                 try {
-                    [ctx.body, ctx.files] = await form.parse(req);
-                    for (let k in ctx.body) {
-                        if (ctx.body[k].length == 1) {
-                            ctx.body[k] = ctx.body[k][0]?.trim()
+                    let [body, files] = await form.parse(req);
+                    ctx.files = files
+                    for (let k in body) {
+                        let field = body[k]
+                        if (Array.isArray(field)) {
+                            ctx.body[k] = field[0].trim()
+                            ctx.bodyArrays[k] = field.map(f => f.trim())
+                        }
+                        else {
+                            ctx.body[k] = field ?? ''
                         }
                     }
                 } catch (err) {
@@ -158,7 +164,7 @@ let app = {
                     }
                 }
                 else {
-                    res.end('path not found' + req.url);
+                    res.end('path not found ' + req.url);
                     return
                 }
             }
@@ -174,7 +180,6 @@ let app = {
                 }
             })
 
-
         });
 
         server.on('clientError', (err, socket) => {
@@ -189,16 +194,20 @@ let app = {
 
 export function load_pages(path = 'pages') {
     fs.readdirSync(process.cwd() + '/' + path).forEach(async function (filename) {
-        let filepath = path + '/' + filename;
-        if (fs.lstatSync(process.cwd() + '/' + filepath).isDirectory()) {
-            load_pages(filepath)
+        let reletive_filepath = path + '/' + filename;
+        let filepath = process.cwd() + '/' + reletive_filepath
+        if (fs.lstatSync(filepath).isDirectory()) {
+            load_pages(reletive_filepath)
         }
         else if (filename == '_layout.ts') {
-            let render_ = await import(process.cwd() + '/' + filepath)
+            let render_ = await import(filepath)
             layout = render_.default
         }
+        else if (filename == '_layout.css') {
+            append_css = fs.readFileSync(filepath, { encoding: 'utf8', flag: 'r' })
+        }
         else if (filename.match(/\.ts$/)) {
-            append_route_from_file({ path: filepath, name: filename })
+            append_route_from_file({ path: reletive_filepath, name: reletive_filepath })
         }
     })
 }
@@ -249,7 +258,7 @@ function serve_static(req: http.IncomingMessage, res: http.ServerResponse) {
                     contentType = 'image/svg+xml'
                     break;
             }
-            res.writeHead(200, { 'Content-Type': contentType });
+            res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'public, max-age=3600' });
             res.end(content, 'utf-8');
         }
     });

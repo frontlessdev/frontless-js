@@ -110,16 +110,42 @@ export function image(url: string, props: baseProps & { width?: any, height?: an
     }
     return box(`<img src="${url}" />`, props)
 }
+
+export function expended(child: string, props: baseProps = {}) {
+    append_style(props, { flex: '1' })
+    return box(child, props)
+}
 export function row(arr: any[], props: baseProps & Alignment = {}) {
     append_class(props, "row")
     return box(arr, props)
 }
+
 export function column(arr: any[], props: baseProps & Alignment = {}) {
     append_class(props, "column")
     return box(arr, props)
 }
 export function link(child: string, href: string, props: baseProps = {}) {
     return `<a href="${href}"${style_class_to_str(props)}>${child}</a>`
+}
+
+export function click(child: string, action: string, props: { target?: "self" | "modal", postData?: { [k: string]: any } } & baseProps = {}) {
+    {
+        if (!action) {
+            action = ''
+        }
+        if (props?.target == 'modal') {
+            append_class(props, 'modal_btn')
+        }
+        else {
+            append_class(props, 'component_btn')
+        }
+        let postDataStr = ''
+        if (props?.postData && Object.keys(props.postData).length) {
+            props.postData.testb = 123
+            postDataStr = ` data-postdata="${h(JSON.stringify(props.postData))}"`
+        }
+        return `<a component-action="${action}"${postDataStr ?? ''}${style_class_to_str(props)}>${child}</a>`;
+    }
 }
 
 function style_to_class(style: any) {
@@ -194,10 +220,6 @@ function style_class_to_str(props: any, append?: { style?: any, class?: any }) {
         return ` class="${props.class.join(' ')}"`
     }
     return ''
-}
-
-export function expended(child: string) {
-    return `<div style="flex:1;overflow:hidden;">${child}</div>`
 }
 
 export function breadcrumb(items: { name: string, url: string }[]) {

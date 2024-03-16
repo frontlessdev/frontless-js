@@ -5,6 +5,7 @@ import { parse as url_parse } from 'node:url';
 import { column } from './view';
 import { styleStore } from './view';
 import { appConfig } from '.';
+import { staticVersion } from '.';
 
 interface req extends http.IncomingMessage {
     body?: any
@@ -14,7 +15,8 @@ export type Ctx = {
     req: req
     res: http.ServerResponse
     me: { [k: string]: any } | null
-    body: { [k: string]: any }
+    body: { [k: string]: string }
+    bodyArrays: { [k: string]: any[] },
     html: string
     json: Function
     send: (output: string | string[]) => void
@@ -67,7 +69,7 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
     }
     let appended_elements: string[] = []
     let ctx: Ctx = {
-        req, res, params: {}, query: url_parse(req.url ?? '', true).query, locals: {}, path: '', html: '', body: {}, me: null, components_stack: [], component: { props: {}, action: '' },
+        req, res, params: {}, query: url_parse(req.url ?? '', true).query, locals: {}, path: '', html: '', body: {}, bodyArrays: {}, me: null, components_stack: [], component: { props: {}, action: '' },
         _sys: {
             isSent: false,
             totalQueries: 0,
@@ -102,8 +104,8 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
             }
             ctx._sys.isSent = true
             let head = `
-            <script src="/frontless.js"></script>
-    <style type="text/css" media="all">@import "/frontless.css";</style>`
+            <script src="/main.${staticVersion}.js"></script>
+    <style type="text/css" media="all">@import "/main.${staticVersion}.css";</style>`
             let html
             // need to catch error because template support components
             try {

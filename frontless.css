@@ -462,7 +462,7 @@ img {
     overflow: auto;
     background-color: rgb(0, 0, 0);
     background-color: rgba(0, 0, 0, 0.4);
-    transition: opacity 0.1s linear;
+    transition: opacity 0.3s linear;
 }
 
 .modal {
@@ -473,7 +473,11 @@ img {
     align-items: center;
 }
 
-/* Modal Content/Box */
+.modal-content-container {
+    transform: scale(1.05);
+    transition: transform 0.05s linear;
+}
+
 .modal-content {
     background-color: #fefefe;
     border: 1px solid rgb(146, 146, 146);
@@ -486,9 +490,8 @@ img {
     overflow-y: auto;
     border-radius: 10px;
     padding: 20px;
-    transform: scale(0.5);
-    transition: margin 0.1s linear;
-    transition: transform 0.1s linear;
+    transform: scale(0.3);
+    transition: transform 0.15s linear;
 }
 
 

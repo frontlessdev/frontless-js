@@ -122,7 +122,7 @@ on("change", ".form_image_input", async function (ele) {
         return
     }
     let box = image_boxes[box_id]
-    let r1 = await jsonPost('/action', { action: 'beforuploading' })
+    let r1 = await jsonPost('/action/builtin_image/beforuploading', {})
     if (r1.status != 'ok') {
         alert(r1.err ?? 'unable to get token')
         return
@@ -298,12 +298,18 @@ function modal_template() {
         document.getElementsByClassName("modal-container")[0].style.opacity = 1
         document.getElementsByClassName("modal-content")[0].style.transform = 'scale(1)'
     }, 1);
+    setTimeout(() => {
+        document.getElementsByClassName("modal-content-container")[0].style.transform = 'scale(1)'
+        document.getElementsByClassName("modal-container")[0].style.transition = 'opacity 0.1s linear';
+    }, 150);
     return `<div  class="commonModal modal-container">
     <div class="modal">
-    <div class="modal-content">
-        <div class="modal-title"><span class="modal-close-btn">&times;</span></div>
-        <div class="modal-body"><div class="loader"></div></div>
-    </div>
+        <div class="modal-content-container">
+            <div class="modal-content">
+                <div class="modal-title"><span class="modal-close-btn">&times;</span></div>
+                <div class="modal-body"><div class="loader"></div></div>
+            </div>
+        </div>
     </div>
     </div>`
 }
