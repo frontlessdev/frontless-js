@@ -148,7 +148,6 @@ let app = {
             // route
             let page_handler: () => void
             if (req.url?.match(/\/action\/[\d\w_\-]+\/[\d\w_\-]+/)) {
-                console.log('matched ', req.url)
                 page_handler = action
             }
             else {
