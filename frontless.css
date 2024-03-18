@@ -1,16 +1,41 @@
+:root {
+    --main-bg: white;
+    --secondary-bg: #eee;
+
+    --main-text: #333;
+    --secondary-text: #666;
+    --sub-text: #666;
+
+    --main-link: #333;
+    --main-link-hover: #333;
+    --secondary-link: #333;
+
+    --button-text: #333;
+    --button-bg: #eee;
+    --button-filled-bg: #ccc;
+    --button-filled-text: #eee;
+}
+
 body {
     padding: 0px;
     margin: 0px;
     font-size: 16px;
     font-family: sans-serif;
+    background-color: var(--main-bg);
 }
 
-:root {
-    --main-text: #333;
-    --sub-text: #666
-}
 
 /* basic */
+
+a,
+a:visited {
+    color: var(--main-link)
+}
+
+a:hover {
+    color: var(--main-link-hover)
+}
+
 .description,
 sub {
     font-size: 0.9em;
@@ -95,8 +120,8 @@ button:disabled {
 }
 
 .button-regular {
-    color: rgb(78, 78, 78);
-    background-color: #eeeeee;
+    color: var(--button-text);
+    background-color: var(--button-bg);
 }
 
 .button-regular:hover {
@@ -110,8 +135,8 @@ button:disabled {
 }
 
 .button-elevated {
-    color: rgb(78, 78, 78);
-    background-color: #eeeeee;
+    color: var(--button-text);
+    background-color: var(--button-bg);
     box-shadow: 2px 2px 3px #999;
 }
 
@@ -121,13 +146,13 @@ button:disabled {
 }
 
 .button-filled {
-    color: #eee;
-    background-color: #777777;
+    color: var(--button-filled-text);
+    background-color: var(--button-filled-bg);
 }
 
 .button-filled:hover {
-    color: var(--button-hover-text, white);
-    background: var(--button-hover-bg, #686868);
+    color: var(--button-filled-hover-text, white);
+    background: var(--button-filled-hover-bg, #686868);
 }
 
 /* breadcrumbs */
@@ -190,20 +215,22 @@ button:disabled {
 select,
 input[type="text"],
 input[type="password"] {
-    width: 100%;
-    padding: 5px;
+    width: 95%;
+    padding: 10px;
     border-radius: 3px;
     font-size: 16px;
     border-width: 1px;
+    border-radius: 6px;
 }
 
 textarea {
-    width: 100%;
-    padding: 5px;
-    height: 150px;
+    width: 95%;
+    padding: 10px;
+    height: 100px;
     border-radius: 3px;
     font-size: 16px;
     border-width: 1px;
+    border-radius: 6px;
 }
 
 .checkbox_container {
@@ -282,6 +309,7 @@ select {
 
 
 }
+
 
 .modal_btn,
 .component_btn {
@@ -460,6 +488,35 @@ img {
 }
 
 
+
+.modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 10px;
+    background-color: var(--secondary-bg);
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-title {
+    color: var(--secondary-text);
+    font-weight: 1.3em;
+    font-weight: bold;
+}
+
+.modal-close-btn {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.modal-close-btn:hover,
+.modal-close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 .modal-container {
     opacity: 0;
     position: fixed;
@@ -490,37 +547,31 @@ img {
 .modal-content {
     background-color: #fefefe;
     border: 1px solid rgb(146, 146, 146);
-    min-width: 350px;
-    max-width: 500px;
-    max-height: 80%;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    overflow-y: auto;
     border-radius: 10px;
-    padding: 20px;
     transform: scale(0.3);
     transition: transform 0.15s linear;
 }
 
-
-
-/* The Close Button */
-.modal-title {
-    text-align: right;
+.modal-body {
+    padding: 20px;
+    overflow-y: hidden;
+    max-height: 60px;
+    transition: max-height 0.2s linear;
 }
 
-.modal-close-btn {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
+@media (min-width:451px) {
+    .modal-content {
+        width: 500px;
+    }
 }
 
-.modal-close-btn:hover,
-.modal-close-btn:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+@media (max-width:450px) {
+    .modal-content {
+        width: 350px;
+    }
 }
 
 /* loader */

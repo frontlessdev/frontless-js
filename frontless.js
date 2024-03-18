@@ -14,7 +14,12 @@ onClick(".modal_btn", async function (ele) {
             modal = document.querySelector(`.commonModal`)
             modal.style.display = 'block'
         }
+        document.querySelector(`.modal-title`).innerHTML = ele.getAttribute("title") ?? ''
         let res = await jsonPost(action_url, data)
+        document.querySelector(`.modal-body`).style.maxHeight = '700px'
+        setTimeout(() => {
+            document.querySelector(`.modal-body`).style.overflowY = 'auto'
+        }, 160);
         if (typeof res == 'string') {
             res = JSON.parse(res)
         }
@@ -306,8 +311,15 @@ function modal_template() {
     <div class="modal">
         <div class="modal-content-container">
             <div class="modal-content">
-                <div class="modal-title"><span class="modal-close-btn">&times;</span></div>
-                <div class="modal-body"><div class="loader"></div></div>
+                <div class="modal-head">
+                    <div class="modal-title"></div>
+                    <span class="modal-close-btn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div style="padding:50px 10px">
+                    <div class="loader"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

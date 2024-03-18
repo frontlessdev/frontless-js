@@ -145,10 +145,14 @@ export function link(child: string, href: string, props: baseProps = {}) {
     return `<a href="${href}"${style_class_to_str(props)}>${child}</a>`
 }
 
-export function click(child: string, action: string, props: { target?: "self" | "modal", postData?: { [k: string]: any } } & baseProps = {}) {
+export function click(child: string, action: string, props: { target?: "self" | "modal", title?: string, postData?: { [k: string]: any } } & baseProps = {}) {
     {
         if (!action) {
             action = ''
+        }
+        let titleStr = ''
+        if (typeof props.title == 'string') {
+            titleStr = ` title="${h(props.title)}"`
         }
         if (props?.target == 'modal') {
             append_class(props, 'modal_btn')
@@ -161,7 +165,7 @@ export function click(child: string, action: string, props: { target?: "self" | 
             props.postData.testb = 123
             postDataStr = ` data-postdata="${h(JSON.stringify(props.postData))}"`
         }
-        return `<a component-action="${action}"${postDataStr ?? ''}${style_class_to_str(props)}>${child}</a>`;
+        return `<a component-action="${action}"${postDataStr ?? ''}${style_class_to_str(props)}${titleStr}>${child}</a>`;
     }
 }
 
@@ -392,7 +396,7 @@ type field = {
     selectOptions?: { name: string, value: any }[]
     selectDefaultValue?: any
 }
-type FormField = { name: string, label?: string, description?: string, value?: any, type?: string }
+type FormField = { name: string, label?: string, description?: string, value?: any, type?: string, placeholder?: string }
 function des(des: string) {
     return des ? `<div class="description">${h(des)}</div>` : ''
 }
@@ -406,7 +410,7 @@ export function password(field: FormField) {
     return input(field)
 }
 export function textarea(field: FormField) {
-    return `<textarea name="${field.name}">${h(field.value)}</textarea>
+    return `<textarea name="${field.name}" placeholder="${h(field.placeholder ?? '')}">${h(field.value)}</textarea>
     ${des(field.description ?? '')}`;
 }
 
