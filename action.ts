@@ -5,7 +5,6 @@ import * as view from "./view";
 let apiUrl = process.env.FRONTLESS_API_DEV_URL ?? 'https://api.frontless.dev/v1'
 const action = async () => {
     let ctx = getCtx()
-    log('ctx.body', ctx.body)
     if (ctx.req.method != 'POST') {
         ctx.err('POST only')
     }

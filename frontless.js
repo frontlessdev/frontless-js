@@ -251,10 +251,10 @@ function component_handle_res(component, res) {
                 cmt.style.overflow = 'hidden'
                 setTimeout(() => {
                     cmt.style.height = '1px'
-                }, 1);
+                }, 10);
                 setTimeout(() => {
                     cmt.remove()
-                }, 250);
+                }, 210);
             }
             else {
                 cmt.innerHTML = res.html;

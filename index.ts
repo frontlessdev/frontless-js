@@ -17,15 +17,18 @@ type Config = {
 export let appConfig: Config = {
 
 }
+let append_css = ''
 
+// default layout
 let layout = (body: string) => {
     return `<!doctype html><html><head></head><body>${body}</body><html>`
 }
-let middlewares: MiddleWare[] = []
 
+// static file max-age
 const static_age = process.env.NODE_ENV == 'production' ? 3600 : 604800
-let append_css = ''
 
+// call middlewares
+let middlewares: MiddleWare[] = []
 async function call_middleware(index: number, ctx: Ctx, route_handler: (...args: any) => any) {
     let nextFn
     try {
@@ -203,8 +206,7 @@ let app = {
     }
 }
 
-
-
+// load routes and page components from "pages" folder
 export function load_pages(path = 'pages') {
     fs.readdirSync(process.cwd() + '/' + path).forEach(async function (filename) {
         let reletive_filepath = path + '/' + filename;
@@ -212,19 +214,20 @@ export function load_pages(path = 'pages') {
         if (fs.lstatSync(filepath).isDirectory()) {
             load_pages(reletive_filepath)
         }
-        else if (filename == '_layout.ts') {
+        else if (filename == '_layout.ts' || filename == '_layout.js') {
             let render_ = await import(filepath)
             layout = render_.default
         }
         else if (filename == '_layout.css') {
             append_css = fs.readFileSync(filepath, { encoding: 'utf8', flag: 'r' })
         }
-        else if (filename.match(/\.ts$/)) {
+        else if (filename.match(/\.js|\.ts$/)) {
             append_route_from_file({ path: reletive_filepath, name: reletive_filepath })
         }
     })
 }
 
+// append routes based on file path
 async function append_route_from_file(file: { path: string, name: string }) {
     let route_path = file.path.replace(/\.js|\.ts$/, '').replace(/^pages\//, '')
     if (route_path == 'index') {
@@ -235,6 +238,7 @@ async function append_route_from_file(file: { path: string, name: string }) {
     append_route(route_path, handler.default)
 }
 
+// serve static files from the "static" folder
 function serve_static(req: http.IncomingMessage, res: http.ServerResponse) {
     let filePath = process.cwd() + req.url
     fs.readFile(filePath, function (error, content) {
@@ -277,7 +281,7 @@ function serve_static(req: http.IncomingMessage, res: http.ServerResponse) {
     });
 }
 
-
+// export main api
 export default function Frontless(config: Config = {}) {
     if (typeof config.htmlErrorHandler == 'function') {
         app.htmlErrorHandler = config.htmlErrorHandler

@@ -13,7 +13,9 @@ type baseProps = {
 type Alignment = {
     "mainAxis"?: "flex-start" | "flex-end" | "center" | "space-between" | "space-evenly",
     "crossAxis"?: "flex-start" | "flex-end" | "center" | "stretch",
-    "gap"?: string,
+    "margin"?: string | number,
+    "padding"?: string | number,
+    "gap"?: string | number,
     "flex"?: number
 }
 
@@ -156,7 +158,22 @@ export function box(child: string[] | string, props: baseProps & Alignment = {})
     if (props.crossAxis) {
         append_style(props, { "align-items": props.crossAxis })
     }
+    if (props.margin) {
+        if (typeof props.margin == 'number') {
+            props.margin = props.margin + 'px'
+        }
+        append_style(props, { "margin": props.margin })
+    }
+    if (props.padding) {
+        if (typeof props.padding == 'number') {
+            props.padding = props.padding + 'px'
+        }
+        append_style(props, { "padding": props.padding })
+    }
     if (props.gap) {
+        if (typeof props.gap == 'number') {
+            props.gap = props.gap + 'px'
+        }
         append_style(props, { "gap": props.gap })
     }
     return `<div ${style_class_to_str(props)}>
@@ -208,7 +225,6 @@ function style_to_class(style: any) {
     let id = makeId()
     styleStore.push({ id, str })
     _sys.cssUpdated.push({ id, str })
-    log(`creating ${id} (total: ${styleStore.length})`)
     return id
 }
 
@@ -285,6 +301,7 @@ export function breadcrumb(items: { name: string, url: string }[]) {
 type Text = {
     size?: "sm" | "normal" | "lg" | "xl" | "2x"
     weight?: "bold" | "normal"
+    color?: string
 }
 export function text(child: string | number, props: baseProps & Text = {}) {
     if (typeof child != 'string') {
@@ -309,6 +326,9 @@ export function text(child: string | number, props: baseProps & Text = {}) {
                 style["font-size"] = '1.7em'
                 break;
         }
+    }
+    if (props?.color) {
+        style["color"] = props.color
     }
     if (props?.weight) {
         style["font-weight"] = props.weight
@@ -465,8 +485,10 @@ export function ln(...args: string[]) {
     return column(args, { gap: '5px', style: { "margin-bottom": "5px" } })
 }
 
-export function splitView(first: string, second: string) {
-    return `<div class="splitview"><div>${first}</div><div>${second}</div></div>`
+export function splitView(first: string, second: string, firstDivPercent: number = 50) {
+    let secondDivPercent = 100 - firstDivPercent
+
+    return `<div class="splitview"><div class="splitview_first" style="--splitview-first-width:${firstDivPercent + '%'};">${first}</div><div class="splitview_second" style="--splitview-second-width:${secondDivPercent + '%'};">${second}</div></div>`
 }
 
 type field = {

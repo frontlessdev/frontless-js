@@ -79,7 +79,7 @@ component {
     align-items: stretch;
     width: 100%;
     overflow: visible;
-    transition: all 0.25s linear;
+    transition: all 0.2s linear;
 }
 
 /* button */
@@ -184,13 +184,23 @@ button:disabled {
     display: flex;
     align-items: center;
     overflow: auto;
-    width: 50%;
     box-sizing: border-box;
     padding: 10px;
+    min-height: 100px;
+}
+
+.splitview_first {
+    width: var(--splitview-first-width, 50%);
+}
+
+.splitview_second {
+    width: var(--splitview-second-width, 50%);
 }
 
 @media (max-width: 600px) {
-    .splitview>div {
+
+    .splitview_first,
+    .splitview_second {
         width: 100%;
     }
 }
