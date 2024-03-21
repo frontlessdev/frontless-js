@@ -87,7 +87,10 @@ onSubmit(".component_form", async (ele) => {
         add_loader(ele)
         component.classList.add("submitting")
         const formData = new FormData(ele);
-        const formDataObject = Object.fromEntries(formData.entries());
+        const formDataObject = Object.fromEntries(Array.from(formData.keys(), key => {
+            const val = formData.getAll(key)
+            return [key, val.length > 1 ? val : val.pop()]
+        }))
         data = { ...data, ...formDataObject }
         log('data', data)
         component.querySelector(".form-error-box").style.display = 'none'
@@ -186,6 +189,7 @@ onClick(".form_image_btn", async function (ele) {
     input.classList.add("form_image_input")
     input.name = 'image'
     input.type = 'file'
+    input.accept = 'image/*'
     input.style.display = 'none'
     ele.insertAdjacentElement("afterend", input)
     let settings = JSON.parse(ele.getAttribute("settings"))
@@ -197,9 +201,10 @@ onClick(".form_image_btn", async function (ele) {
     input.click()
 })
 
+
 //
 function component_handle_res(component, res) {
-    log('handle res', res)
+    log('handle res', res,)
     let live_modal = document.querySelector(".commonModal")
     if (res.act == 'redirect') {
         log('redirecting')
@@ -211,14 +216,14 @@ function component_handle_res(component, res) {
         window.location.reload();
         return
     }
-    else if (res.method == 'modal') {
+    else if (typeof res.modal == 'string') {
         log('create modal')
         if (!live_modal) {
             component.insertAdjacentHTML("beforeend", modal_template())
-            let live_modal = document.querySelector(".commonModal")
+            live_modal = document.querySelector(".commonModal")
         }
-
-        live_modal.querySelector(".modal-body").innerHTML = res.content
+        log('update modal body')
+        live_modal.querySelector(".modal-body").innerHTML = res.modal
         // cm.fadeIn("fast")
         setTimeout(() => {
             live_modal.querySelector(`input[type="text"],input[type="password"], textarea`).focus();
@@ -240,30 +245,33 @@ function component_handle_res(component, res) {
         update_dynamic_css(res.css)
     }
     for (let cmt of cmts) {
-        if (res.method == 'before') {
-            cmt.insertAdjacentHTML("beforebegin", res.content)
-        }
-        else if (res.method == 'after') {
-            cmt.insertAdjacentHTML("afterend", res.content)
-        }
-        else if (res.method == 'append') {
-            cmt.insertAdjacentHTML("beforeend", res.content)
-        }
-        else if (res.method == 'prepend') {
-            cmt.insertAdjacentHTML("afterbegin", res.content)
-        }
-        else if (typeof res.html == 'string') {
+        if (typeof res.html == 'string') {
             if (res.html == '') {
-                cmt.remove()
+                cmt.style.height = cmt.offsetHeight + 'px'
+                cmt.style.overflow = 'hidden'
+                setTimeout(() => {
+                    cmt.style.height = '1px'
+                }, 1);
+                setTimeout(() => {
+                    cmt.remove()
+                }, 250);
             }
             else {
                 cmt.innerHTML = res.html;
 
             }
         }
-
-        else {
-
+        if (typeof res.before == 'string') {
+            cmt.insertAdjacentHTML("beforebegin", res.before)
+        }
+        if (typeof res.after == 'string') {
+            cmt.insertAdjacentHTML("afterend", res.after)
+        }
+        if (typeof res.append == 'string') {
+            cmt.insertAdjacentHTML("beforeend", res.append)
+        }
+        if (typeof res.before == 'string') {
+            cmt.insertAdjacentHTML("afterbegin", res.prepend)
         }
     }
 }
@@ -337,7 +345,18 @@ function close_modal() {
     }
 }
 
+// auto height textarea
+document.addEventListener("input", function (e) {
+    if (e.target.classList.contains("autoheight")) {
+        e.target.style.height = 'auto';
+        e.target.style.height = (e.target.scrollHeight) + "px";
 
+    }
+}
+    , false);
+
+
+// json post
 async function jsonPost(url = "", data = {}) {
     log('posting ', url, "\ndata ", data)
     const response = await fetch(url, {
@@ -357,13 +376,189 @@ function on(eventName, target, callback) {
     document.addEventListener(eventName, (event) => {
         if (event.target.closest(target)) {
             event.preventDefault()
-            callback(event.target.closest(target))
+            callback(event.target.closest(target), event)
         }
     })
 }
+
+function onClickOutside(target, callback) {
+    document.addEventListener("click", (event) => {
+        if (!event.target.closest(target)) {
+            callback()
+        }
+    })
+}
+
 function onSubmit(target, callback) {
     on("submit", target, callback)
 }
 function onClick(target, callback) {
     on("click", target, callback)
+}
+
+// dropdown
+on("click", ".dropdown-btn", function (ele) {
+    let dropdown = ele.closest(".dropdown")
+    let body = dropdown.querySelector(".dropdown-body")
+    log('ele.offsetHeight', ele.offsetHeight)
+    body.style.top = '50px'
+    body.style.display = 'block'
+    body.style.opacity = 0
+    setTimeout(() => {
+        body.style.opacity = 1.0
+        body.style.top = ele.offsetHeight + 5 + 'px'
+    }, 1);
+})
+onClickOutside(".dropdown", function () {
+    Array.from(document.getElementsByClassName("dropdown-body")).forEach(element => {
+        element.style.display = 'none'
+    });
+})
+
+
+
+
+// avatar form
+
+{
+    const fileInput = document.getElementById('fileInput');
+    let imageCanvas, maskCanvas, imageCtx, maskCtx;
+    let img = new Image();
+    let drag = false;
+    let resize = false;
+    let rect = { x: 0, y: 0, w: 200, h: 200 };
+
+    onClick(".form_avatar_btn", async function (ele) {
+        let input = document.createElement("input")
+        input.classList.add("form_avatar_input")
+        input.name = 'image'
+        input.type = 'file'
+        input.accept = 'image/*'
+        input.style.display = 'none'
+        ele.insertAdjacentElement("afterend", input)
+        input.click()
+    })
+
+    on("change", ".form_avatar_input", async function (ele) {
+        imageCanvas = document.createElement('canvas');
+        maskCanvas = document.createElement('canvas');
+        maskCanvas.classList.add("maskCanvas")
+        imageCanvas.style.position = 'absolute';
+        maskCanvas.style.position = 'absolute';
+
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            img.onload = function () {
+                let scale = Math.max(200 / img.width, 200 / img.height);
+                imageCanvas.width = img.width * scale;
+                imageCanvas.height = img.height * scale;
+                maskCanvas.width = img.width * scale;
+                maskCanvas.height = img.height * scale;
+                rect.x = (imageCanvas.width - rect.w) / 2;
+                rect.y = (imageCanvas.height - rect.h) / 2;
+                drawImageAndRect();
+            }
+            img.src = e.target.result;
+        }
+        reader.readAsDataURL(ele.files[0]);
+        let cmt = ele.closest("component")
+        ele.closest("component").insertAdjacentHTML("beforeend", modal_template())
+        document.querySelector(".modal-title").innerHTML = 'Avatar'
+        document.querySelector(".modal-body").style.maxHeight = '700px'
+        document.querySelector(".modal-body").style.height = '400px'
+        document.querySelector(".modal-body").innerHTML = ``
+        document.querySelector(".modal-body").appendChild(imageCanvas);
+        document.querySelector(".modal-body").appendChild(maskCanvas);
+        document.querySelector(".modal-body").insertAdjacentHTML("beforeend", `<button class="avatar_submit" style="position:absolute;bottom:10px">Submit</button>`)
+        imageCtx = imageCanvas.getContext('2d');
+        maskCtx = maskCanvas.getContext('2d');
+    })
+
+    function drawImageAndRect() {
+        imageCtx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+        imageCtx.drawImage(img, 0, 0, imageCanvas.width, imageCanvas.height);
+        maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+        maskCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        maskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+        maskCtx.clearRect(rect.x, rect.y, rect.w, rect.h);
+        maskCtx.strokeStyle = 'red';
+        maskCtx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+        maskCtx.fillRect(rect.x + rect.w - 5, rect.y + rect.h - 5, 10, 10);
+    }
+    on("mousedown", ".maskCanvas", function (ele, e) {
+        let rectX = e.clientX - maskCanvas.getBoundingClientRect().left;
+        let rectY = e.clientY - maskCanvas.getBoundingClientRect().top;
+        if (Math.abs(rectX - rect.x - rect.w) < 10 && Math.abs(rectY - rect.y - rect.h) < 10) {
+            resize = true;
+            maskCanvas.style.cursor = 'nwse-resize';
+        } else if (rectX > rect.x && rectX < rect.x + rect.w && rectY > rect.y && rectY < rect.y + rect.h) {
+            drag = true;
+            maskCanvas.style.cursor = 'move';
+        }
+    });
+    on("mousemove", ".maskCanvas", function (ele, e) {
+        let rectX = e.clientX - maskCanvas.getBoundingClientRect().left;
+        let rectY = e.clientY - maskCanvas.getBoundingClientRect().top;
+        if (resize) {
+            let size = Math.max(rectX - rect.x, rectY - rect.y, 50);
+            rect.w = Math.min(size, maskCanvas.width - rect.x);
+            rect.h = Math.min(size, maskCanvas.height - rect.y);
+        } else if (drag) {
+            rect.x = Math.min(Math.max(0, rectX - rect.w / 2), maskCanvas.width - rect.w);
+            rect.y = Math.min(Math.max(0, rectY - rect.h / 2), maskCanvas.height - rect.h);
+        }
+
+        drawImageAndRect();
+    });
+    on("mouseup", ".maskCanvas", function (e) {
+        drag = false;
+        resize = false;
+        maskCanvas.style.cursor = 'default';
+    });
+    on("click", ".avatar_submit", async function (ele) {
+        let cmt = ele.closest("component")
+        let selectedCanvas = document.createElement('canvas');
+        selectedCanvas.width = rect.w;
+        selectedCanvas.height = rect.h;
+        let selectedCtx = selectedCanvas.getContext('2d');
+        selectedCtx.drawImage(imageCanvas, rect.x, rect.y, rect.w, rect.h, 0, 0, rect.w, rect.h);
+        let selectedImageDataURL = selectedCanvas.toDataURL();
+        // Convert data URL to Blob
+        let byteString = atob(selectedImageDataURL.split(',')[1]);
+        let mimeString = selectedImageDataURL.split(',')[0].split(':')[1].split(';')[0]
+        let ab = new ArrayBuffer(byteString.length);
+        let ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        let blob = new Blob([ab], { type: mimeString });
+        close_modal()
+        cmt.querySelector(".form_image_loader").innerHTML = '<div class="spinner"></div>'
+        let r = await upload_avatar(blob)
+        cmt.querySelector(".form_image_loader").innerHTML = ''
+        if (r.status == 'ok') {
+            log('assign entry', r)
+            cmt.querySelector(".avatar_preview").innerHTML = `<img src="${r.s.url}" />`
+            cmt.querySelector("[name='image_entries']").value = JSON.stringify([r.id])
+        }
+        else {
+            alert('unable to upload')
+        }
+    });
+
+    async function upload_avatar(blob) {
+        let r1 = await jsonPost('/action/builtin_image/beforuploading', {})
+        if (r1.status != 'ok') {
+            alert(r1.err ?? 'unable to get token')
+            return
+        }
+        log('uploading~~')
+        var data = new FormData()
+        data.append('file', blob, 'avatar.png')
+        let r = await fetch(r1.preSignedUrl, { method: 'POST', body: data })
+        let j = await r.json()
+        return j
+
+    }
+
 }

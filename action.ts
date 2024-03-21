@@ -1,10 +1,11 @@
 const { log } = console
 import { getCtx, Ctx } from "./context";
-import { components, ComponentRes } from "./component";
+import { components, ComponentResType } from "./component";
 import * as view from "./view";
 let apiUrl = process.env.FRONTLESS_API_DEV_URL ?? 'https://api.frontless.dev/v1'
 const action = async () => {
     let ctx = getCtx()
+    log('ctx.body', ctx.body)
     if (ctx.req.method != 'POST') {
         ctx.err('POST only')
     }
@@ -41,23 +42,21 @@ const action = async () => {
                 let r = await jsonPost(apiUrl + '/verify', { act: 'confirm', entries: ctx.body.image_entries, key: process.env.FRONTLESS_KEY })
                 log('i r', r)
                 if (r?.status == 'ok' && r?.images?.length > 0) {
-                    ctx.bodyArrays[key] = r.images
+                    ctx.body[key] = r.images
                 }
                 else {
-                    ctx.bodyArrays[key] = []
+                    ctx.body[key] = []
                 }
             } catch (e) {
                 log('failed parse img')
-                ctx.bodyArrays[key] = []
-            }
-            if (ctx.bodyArrays[key].length) {
-                ctx.body[key] = ctx.bodyArrays[key][0]
+                ctx.body[key] = []
             }
         }
         else {
-            ctx.bodyArrays[key] = []
+            ctx.body[key] = []
         }
     }
+
     let { component_key } = ctx.body
     if (typeof component_key != 'string' || typeof component_name != 'string' || typeof component_action != 'string' || !component_name || !component_action) {
         ctx.err('no componnet name or action')
@@ -101,7 +100,7 @@ const action = async () => {
     }
     // call action
     let r = await i[component_action]()
-    if (r) {// if got return, send it to client
+    if (typeof r != 'undefined') {// if got return, send it to client
         handle_res(ctx, r)
         return
     }
@@ -112,7 +111,7 @@ const action = async () => {
 
 }
 
-function handle_res(ctx: Ctx, res: ComponentRes) {
+function handle_res(ctx: Ctx, res: ComponentResType) {
     let cssUpdated = ''
     if (Array.isArray(ctx._sys?.cssUpdated)) {
         cssUpdated = "\n" + ctx._sys.cssUpdated.map(e => `.${e.id} {${e.str}}`).join("\n")

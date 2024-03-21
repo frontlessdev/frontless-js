@@ -3,7 +3,7 @@ import { getCtx, Ctx } from './context'
 import { h } from './view'
 import { makeId } from './utils'
 export type Json = { [k: string]: any }
-export type ComponentRes = string | Json | void
+export type ComponentResType = string | Json | void
 export let components = new Map<string, { fn: any, methods: string[] }>()
 type keyType = {
     [k: string]: string | number | boolean
@@ -89,56 +89,14 @@ export function newPage(cmt: new () => any): () => any {
     }
 }
 
-export function click(child: string, action: string, props: { target?: "self" | "modal", postData?: { [k: string]: any } } = {}) {
-    {
-        if (!action) {
-            action = ''
-        }
-        if (props?.target == 'modal') {
-            var className = 'modal_btn'
-        }
-        else {
-            var className = 'component_btn'
-        }
-        let postDataStr = ''
-        if (props?.postData && Object.keys(props.postData).length) {
-            props.postData.testb = 123
-            postDataStr = ` data-postdata="${h(JSON.stringify(props.postData))}"`
-        }
-        return `<a class="${className}"  component-action="${action}"${postDataStr ?? ''}>${child}</a>`;
-    }
-}
 
-export function dom() {
-    return {
-        before(content: string) {
-            return {
-                method: "before",
-                content
-            }
-        },
-        after(content: string) {
-            return {
-                method: "after",
-                content
-            }
-        }, append(content: string) {
-            return {
-                method: "append",
-                content
-            }
-        }, prepend(content: string) {
-            return {
-                method: "prepend",
-                content
-            }
-        },
-        modal(content: string) {
-            return {
-                method: "modal",
-                content
-            }
-        }
-
-    }
+export function componentRes(res: {
+    before?: string,
+    after?: string,
+    append?: string,
+    prepend?: string,
+    html?: string,
+    modal?: string,
+}) {
+    return res
 }

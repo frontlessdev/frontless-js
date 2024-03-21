@@ -2,6 +2,7 @@ import { StandardPropertiesHyphen } from "csstype"
 import { SvgFileNames, svgContent } from "./.source/svgSource"
 import { makeId } from "./utils"
 import { getCtx } from "./context"
+import crypto from 'crypto'
 const { log } = console
 export let styleStore: { id: string, str: string }[] = []
 
@@ -12,7 +13,8 @@ type baseProps = {
 type Alignment = {
     "mainAxis"?: "flex-start" | "flex-end" | "center" | "space-between" | "space-evenly",
     "crossAxis"?: "flex-start" | "flex-end" | "center" | "stretch",
-    "gap"?: string
+    "gap"?: string,
+    "flex"?: number
 }
 
 export function icon(name: SvgFileNames, size?: "sm" | "normal" | "lg" | "xl" | "2x" | "4x") {
@@ -94,24 +96,7 @@ export function div(child: string, props: baseProps & Alignment = {}) {
         ${child}
         </div>`
 }
-export function box(child: any[] | string, props: baseProps & Alignment = {}) {
-    append_class(props, "flex")
-    if (props.crossAxis) {
-        append_style(props, { "align-items": props.crossAxis })
-    }
-    if (props.mainAxis) {
-        append_style(props, { "justify-content": props.mainAxis })
-    }
-    if (props.gap) {
-        append_style(props, { "gap": props.gap })
-    }
-    if (Array.isArray(child)) {
-        child = child.join('')
-    }
-    return `<div ${style_class_to_str(props)}>
-        ${child}
-        </div>`
-}
+
 
 export function image(url: string, props: baseProps & { width?: any, height?: any } = {}) {
     append_class(props, 'img_box')
@@ -132,15 +117,53 @@ export function expended(child: string, props: baseProps = {}) {
     append_style(props, { flex: '1' })
     return box(child, props)
 }
+
 export function row(arr: any[], props: baseProps & Alignment = {}) {
+
     append_class(props, "row")
     return box(arr, props)
+}
+
+export function dropdown(button: string, body: string) {
+    return `<div class="dropdown">
+    <div class="dropdown-btn">${button}</div>
+    <div class="dropdown-body">${body}</div>
+    </div>`
 }
 
 export function column(arr: any[], props: baseProps & Alignment = {}) {
     append_class(props, "column")
     return box(arr, props)
 }
+
+export function center(child: string, props: baseProps & Alignment = {}) {
+    append_style(props, { "justify-content": "center", "align-items": "center", flex: 1 })
+    return box(child, props)
+}
+
+
+export function box(child: string[] | string, props: baseProps & Alignment = {}) {
+    append_class(props, "flex")
+    if (Array.isArray(child)) {
+        child = child.join('')
+    }
+    if (props.flex) {
+        append_style(props, { flex: 1 })
+    }
+    if (props.mainAxis) {
+        append_style(props, { "justify-content": props.mainAxis })
+    }
+    if (props.crossAxis) {
+        append_style(props, { "align-items": props.crossAxis })
+    }
+    if (props.gap) {
+        append_style(props, { "gap": props.gap })
+    }
+    return `<div ${style_class_to_str(props)}>
+        ${child}
+        </div>`
+}
+
 export function link(child: string, href: string, props: baseProps = {}) {
     return `<a href="${href}"${style_class_to_str(props)}>${child}</a>`
 }
@@ -309,8 +332,48 @@ export function date(num: number) {
     }
 }
 
+export function avatar(username: string, avatarURL?: string, size: "sm" | "lg" | "medium" | string = "sm") {
+    let _size, fontSize
+    if (size == "sm") {
+        _size = '50px'
+        fontSize = '30px'
+    }
+    else if (size == 'lg') {
+        _size = '250px'
+        fontSize = '40px'
+    }
+    else if (size == "medium") {
+        _size = '100px'
+        fontSize = '35px'
+    }
+    else {
+        _size = size
+    }
+    if (!avatarURL) {
+        const hash = crypto.createHash('md5').update(username).digest("hex");
+        const color = '#' + hash.substring(0, 6);
+        return `<div style="
+        width: ${_size};
+        height: ${_size};
+        border-radius: 50%;
+        background-color: ${color};
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: ${fontSize};
+        font-family: sans-serif;
+    ">
+        ${username[0].toUpperCase()}
+    </div>`
+    }
+    else {
+        return `<img src="${avatarURL}" style="width:${_size};height:${_size};border-radius:50%;" />`
+    }
+}
+
 type buttonProps = {
-    variant?: "text" | "elevated" | "regular" | "filled"
+    variant?: "text" | "elevated" | "regular" | "filled" | "menu"
     icon?: string,
     disabled?: boolean,
     size?: "sm" | "normal" | "lg" | "xl",
@@ -370,6 +433,10 @@ export function textButton(text: string, props: buttonProps = {}) {
     props.variant = "text"
     return button(text, props)
 }
+export function menuButton(text: string, props: buttonProps = {}) {
+    props.variant = "menu"
+    return button(text, props)
+}
 export function filledButton(text: string, props: buttonProps = {}) {
     props.variant = "filled"
     return button(text, props)
@@ -379,8 +446,15 @@ export function elevatedButton(text: string, props: buttonProps = {}) {
     return button(text, props)
 }
 
-export function fadeIn(child: string) {
+export function fadeIn(child: string | number) {
+    if (typeof child != 'number' && typeof child != 'string') {
+        child = ''
+    }
     return `<div class="fadeIn">${child}</div>`
+}
+
+export function slideDown(child: string) {
+    return `<div class="slideDown">${child}</div>`
 }
 
 export function section(title: string, body: string) {
@@ -389,6 +463,10 @@ export function section(title: string, body: string) {
 
 export function ln(...args: string[]) {
     return column(args, { gap: '5px', style: { "margin-bottom": "5px" } })
+}
+
+export function splitView(first: string, second: string) {
+    return `<div class="splitview"><div>${first}</div><div>${second}</div></div>`
 }
 
 type field = {
@@ -409,8 +487,13 @@ export function password(field: FormField) {
     field.type = 'password'
     return input(field)
 }
-export function textarea(field: FormField) {
-    return `<textarea name="${field.name}" placeholder="${h(field.placeholder ?? '')}">${h(field.value)}</textarea>
+export function textarea(field: FormField & { autoHeight?: boolean, height?: number }) {
+    let height = field.height ?? 100
+    if (field.autoHeight) {
+        height = 60
+    }
+    let ahStr = field.autoHeight ? ` class="autoheight"` : ''
+    return `<textarea name="${field.name}" placeholder="${h(field.placeholder ?? '')}"${ahStr} origin-height="${height}" style="height:${height + 'px'}">${h(field.value)}</textarea>
     ${des(field.description ?? '')}`;
 }
 
@@ -460,6 +543,7 @@ export function select(field: FormField &
     return ` <select name="${field.name}">${optStr}</select>
             ${des(field.description ?? '')}`;
 }
+
 // max: default 1, max 20
 export function useImage(field: { name: string, button?: string, max?: number }): [imgButton: string, imgPreview: string] {
     if (!field.max) {
@@ -479,6 +563,18 @@ export function useImage(field: { name: string, button?: string, max?: number })
             <input type="hidden" name="image_entries_name" value="${field.name}" />`;
     return [buttonField, previewField]
 }
+
+export function avatarForm(field: { button?: string, defaultPreview?: string }) {
+
+    if (!field.button) {
+        field.button = button('upload')
+    }
+    let previewStr = field.defaultPreview ? `<img src="${field.defaultPreview}" />` : '<div style="width:100px;height:100px;display:flex;align-items:center;justify-content:center;color:white;background:#ccc">Avatar</div>'
+    return `<div class="form_image_loader"></div><div class="avatar_preview">${previewStr}</div><div class="form_avatar_btn">${field.button}</div>
+            <input type="hidden" name="image_entries" />
+            <input type="hidden" name="image_entries_name" value="avatar" />`;
+}
+
 export function formErrBox() {
     return `<div class="form-error-box"></div>`
 }
