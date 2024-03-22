@@ -79,6 +79,7 @@ export default newComponent(class {
 // components/someComponent.ts
 import { newComponent } from "frontlessjs/component";
 import * as m from "frontlessjs/material"
+import hello from "../components/hello"
 
 export default newComponent(class {
     render() {
@@ -99,8 +100,8 @@ export default newPage(class {
     }
 })
 ```
-#### Component actions
-Component actions are server-side functions called by `click` or `form`.
+#### Component Actions
+Component Actions are server-side functions invoke by `click` or `form`.
 ```
 const demoComponent = newComponent(class {
     foo() {
@@ -133,12 +134,12 @@ export default newComponent(class {
     constructor(private key:any,...otherArgs:any){} 
 })
 ```
-The first argument of constructor is the `key` of the component. `key` will be send to the client's web browser. Do not pass sensitive or large data to `key`. Sometimes you need to separate your data to keep the `key` clean. For example, if you are creating a component to render a user data, do **not** use `constructor(private user:User)`, instead you should use `constructor(private userId:number, private user:User)`, when there is an action, check the `userId` from database:
+The first argument of constructor is the `key` of the component. `key` will be send to clients' web browsers. Do not pass sensitive or large data to `key`. Sometimes you need to separate your data to keep the `key` clean. For example, if you are creating a component to render a user view, do **not** use `constructor(private user:User)`, instead you should use `constructor(private userId:number, private user:User)`, when there is an action, check the `userId` from database:
 ```
 const userView = newComponent(class{
     constructor(private userId:number, private user:User){}
     async hasAct(){
-        this.user = get_user_from_id(this.userId)
+        this.user = get_user_from_database(this.userId)
         if (!this.user){
             getCtx().err("user not found")
         }
@@ -203,6 +204,7 @@ icon("house")
 SVG icon is powered by [Phosphor](https://phosphoricons.com)
 
 ## Materials
+materials are functions to generate user interface
 
 - `icon(name: SvgFileNames, size?: "sm" | "normal" | "lg" | "xl" | "2x" | "4x")`: Generates an SVG icon with optional size specification.
   
