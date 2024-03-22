@@ -1,27 +1,33 @@
 # Frontless-js
 ## Installation
-```console
-npx create-frontless-app my-app
-cd my-app
-```
-## Start web server
 ### Option.1: using Bun
-If not installed Bun
+#### If not installed Bun
 ```console
 curl -fsSL https://bun.sh/install | bash
 ```
-start
+#### Install
 ```console
+bunx create-frontless-app my-app
+```
+#### Start server
+```console
+cd my-app
 bun server.ts
 ```
 
 ### Option.2: using Node
-If not installed tsx
+#### If not installed tsx
 ```console
 npm install --global tsx
 ```
-start
+#### Install
 ```console
+npx create-frontless-app my-app
+```
+
+#### Start server
+```console
+cd my-app
 tsx server.ts
 ```
 
