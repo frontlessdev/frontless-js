@@ -566,37 +566,6 @@ export function select(field: FormField &
             ${des(field.description ?? '')}`;
 }
 
-// max: default 1, max 20
-export function useImage(field: { name: string, button?: string, max?: number }): [imgButton: string, imgPreview: string] {
-    if (!field.max) {
-        field.max = 1
-    }
-    if (field.max > 20) {
-        field.max = 20
-    }
-    if (!field.button) {
-        field.button = button('upload')
-    }
-    let id = makeId();
-    let settings = h(JSON.stringify({ id: id, max: field.max }))
-    let previewField = `<div class="form_image_preview ${id}"></div>`;
-    let buttonField = `<div class="form_image_loader"></div><div class="form_image_btn" id="${id}" settings="${settings}">${field.button}</div>
-            <input type="hidden" name="image_entries" class="${id}" />
-            <input type="hidden" name="image_entries_name" value="${field.name}" />`;
-    return [buttonField, previewField]
-}
-
-export function avatarForm(field: { button?: string, defaultPreview?: string }) {
-
-    if (!field.button) {
-        field.button = button('upload')
-    }
-    let previewStr = field.defaultPreview ? `<img src="${field.defaultPreview}" />` : '<div style="width:100px;height:100px;display:flex;align-items:center;justify-content:center;color:white;background:#ccc">Avatar</div>'
-    return `<div class="form_image_loader"></div><div class="avatar_preview">${previewStr}</div><div class="form_avatar_btn">${field.button}</div>
-            <input type="hidden" name="image_entries" />
-            <input type="hidden" name="image_entries_name" value="avatar" />`;
-}
-
 export function formErrBox() {
     return `<div class="form-error-box"></div>`
 }

@@ -15,47 +15,6 @@ const action = async () => {
         ctx.err('no component or action')
     }
 
-    if (component_name == 'builtin_image' && component_action == 'beforuploading') {
-        if (!process.env?.FRONTLESS_KEY) {
-            ctx.err('rocess.env.FRONTLESS_KEY is not set')
-        }
-        try {
-            let r = await jsonPost(apiUrl + '/geturl', { key: process.env.FRONTLESS_KEY })
-            log('got r from action.ts', r)
-            if (r.status == 'ok') {
-                ctx.json({ status: 'ok', preSignedUrl: r.preSignedUrl })
-            }
-            else {
-                ctx.err(r.err ?? 'failed to verify key')
-            }
-        } catch (e) {
-            ctx.err('failed to get presigned url')
-            log(e)
-        }
-        return
-    }
-    if (typeof ctx.body.image_entries_name == 'string' && ctx.body.image_entries_name.length > 0) {
-        let key = ctx.body.image_entries_name
-        if (typeof ctx.body.image_entries == 'string' && ctx.body.image_entries.length > 1) {
-            try {
-                let r = await jsonPost(apiUrl + '/verify', { act: 'confirm', entries: ctx.body.image_entries, key: process.env.FRONTLESS_KEY })
-                log('i r', r)
-                if (r?.status == 'ok' && r?.images?.length > 0) {
-                    ctx.body[key] = r.images
-                }
-                else {
-                    ctx.body[key] = []
-                }
-            } catch (e) {
-                log('failed parse img')
-                ctx.body[key] = []
-            }
-        }
-        else {
-            ctx.body[key] = []
-        }
-    }
-
     let { component_key } = ctx.body
     if (typeof component_key != 'string' || typeof component_name != 'string' || typeof component_action != 'string' || !component_name || !component_action) {
         ctx.err('no componnet name or action')
