@@ -1,7 +1,5 @@
 import http from 'node:http';
 import { Ctx } from './context';
-const { log } = console
-
 export type Handler = (ctx: Ctx) => any
 export type Route = { path: string, handler: Handler, method: string }
 

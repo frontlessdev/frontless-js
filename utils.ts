@@ -1,4 +1,4 @@
-// first character is letter, so that is can be used for HTML class name and id
+// The first character is letter, so that is can be used for HTML class name and id
 export function makeId(length = 8) {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
