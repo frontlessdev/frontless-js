@@ -204,7 +204,7 @@ icon("house")
 SVG icon is powered by [Phosphor](https://phosphoricons.com)
 
 ## Materials
-materials are functions to generate user interface
+Materials are functions to generate user interface
 
 - `icon(name: SvgFileNames, size?: "sm" | "normal" | "lg" | "xl" | "2x" | "4x")`: Generates an SVG icon with optional size specification.
   
