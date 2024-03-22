@@ -58,7 +58,7 @@ In the `pages` folder, file names are URL paths.
 - `pages/article/[id].ts` - `http://yourdomain.com/article/123`
 - `pages/user_[name].ts` - `http://yourdomain.com/user_abc`
 
-Dynamic params can be abtained from `ctx.params`
+Dynamic params can be abtained from `ctx.params`. Exaple: `ctx.params.id`, `ctx.params.name`
 
 ## Context
 Context is an object created for each client request. You can get context anywhere.
