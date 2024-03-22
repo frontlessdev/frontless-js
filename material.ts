@@ -19,9 +19,9 @@ type Alignment = {
     "flex"?: number
 }
 
-export function icon(name: SvgFileNames, size?: "sm" | "normal" | "lg" | "xl" | "2x" | "4x") {
+export function icon(name: SvgFileNames, props: { size?: "sm" | "normal" | "lg" | "xl" | "2x" | "4x" } = {}) {
     let _size = ''
-    switch (size) {
+    switch (props.size) {
         case 'sm':
             _size = '16px'
             break;
@@ -181,11 +181,11 @@ export function box(child: string[] | string, props: baseProps & Alignment = {})
         </div>`
 }
 
-export function link(child: string, href: string, props: baseProps = {}) {
+export function link(href: string, child: string, props: baseProps = {}) {
     return `<a href="${href}"${style_class_to_str(props)}>${child}</a>`
 }
 
-export function click(child: string, action: string, props: { target?: "self" | "modal", title?: string, postData?: { [k: string]: any } } & baseProps = {}) {
+export function click(action: string, child: string, props: { target?: "self" | "modal", title?: string, postData?: { [k: string]: any } } & baseProps = {}) {
     {
         if (!action) {
             action = ''
@@ -294,7 +294,7 @@ export function breadcrumb(items: { name: string, url: string }[]) {
             return n.name
         }
         else {
-            return link(n.name, n.url)
+            return link(n.url, n.name)
         }
     }).join('<sub>/</sub>')}</div>`
 }
@@ -431,11 +431,11 @@ export function button(text: string, props: buttonProps = {}) {
     }
     else if (props?.size == "lg") {
         style['font-size'] = '1.2em'
-        style['padding'] = '12px'
+        style['padding'] = '16px'
     }
     else if (props?.size == "xl") {
-        style['font-size'] = '1.5em'
-        style['padding'] = '18px'
+        style['font-size'] = '1.4em'
+        style['padding'] = '22px'
     }
     props.style = style
     props.class.push('button-' + props.variant)
@@ -481,10 +481,14 @@ export function section(title: string, body: string) {
     return `<div class="section"><div class="section_title">${title}</div><div class="section_body">${body}</div></div>`
 }
 
-export function splitView(first: string, second: string, firstDivPercent: number = 50) {
-    let secondDivPercent = 100 - firstDivPercent
+export function splitView(first: string, second: string, props: { firstDivPercent?: number, crossAxis?: "flex-start" | "flex-end" | "center" } = {}) {
+    if (!props.firstDivPercent) {
+        props.firstDivPercent = 50
+    }
+    let secondDivPercent = 100 - props.firstDivPercent
+    const alignStr = props.crossAxis ? ` style="align-items:${props.crossAxis}"` : ''
 
-    return `<div class="splitview"><div class="splitview_first" style="--splitview-first-width:${firstDivPercent + '%'};">${first}</div><div class="splitview_second" style="--splitview-second-width:${secondDivPercent + '%'};">${second}</div></div>`
+    return `<div class="splitview"${alignStr}><div class="splitview_first" style="--splitview-first-width:${props.firstDivPercent + '%'};">${first}</div><div class="splitview_second" style="--splitview-second-width:${secondDivPercent + '%'};">${second}</div></div>`
 }
 
 type field = {

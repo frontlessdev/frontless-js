@@ -206,7 +206,7 @@ SVG icon is powered by [Phosphor](https://phosphoricons.com)
 ## Materials
 Materials are functions to generate user interface
 
-- `icon(name: SvgFileNames, size?: "sm" | "normal" | "lg" | "xl" | "2x" | "4x")`: Generates an SVG icon with optional size specification.
+- `icon(name: SvgFileNames, props?:{size?: "sm" | "normal" | "lg" | "xl" | "2x" | "4x"})`: Generates an SVG icon with optional size specification.
   
 - `dl(dt: string, dd: string)`: Creates a definition list (`<dl>`) with term (dt) and description (dd).
   
@@ -248,7 +248,7 @@ Materials are functions to generate user interface
   
 - `box(child: string[] | string, props: baseProps & Alignment = {})`: Creates a customizable container with child elements.
   
-- `link(child: string, href: string, props: baseProps = {})`: Creates a hyperlink (`<a>`) tag linking to the specified URL.
+- `link(href: string, child: string, props: baseProps = {})`: Creates a hyperlink (`<a>`) tag linking to the specified URL.
   
 - `click(child: string, action: string, props: { target?: "self" | "modal", title?: string, postData?: { [k: string]: any } } & baseProps = {})`: Creates a clickable component with specified action and additional properties.
   
@@ -278,7 +278,7 @@ Materials are functions to generate user interface
   
 - `section(title: string, body: string)`: Creates a section component with a title and body.
   
-- `splitView(first: string, second: string, firstDivPercent: number = 50)`: Creates a split view component with specified width percentages for first and second divisions.
+- `splitView(first: string, second: string,props)`: Creates a split view component with specified width percentages for first and second divisions.
   
 - `input(field: FormField)`: Creates an input field component with specified type, name, placeholder, etc.
   
