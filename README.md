@@ -90,7 +90,7 @@ import {icon} from 'frontlessjs/icon`
 ```
 Usage
 ```
-icon("hourse")
+icon("house")
 ```
 SVG icon is powered by [Phosphor](https://phosphoricons.com)
 
