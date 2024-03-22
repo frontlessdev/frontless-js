@@ -60,6 +60,106 @@ In the `pages` folder, file names are URL paths.
 
 Dynamic params can be abtained from `ctx.params`. Example: `ctx.params.id`, `ctx.params.name`
 
+## Component
+#### Create a new component
+```
+// components/hello.ts
+import { newComponent } from "frontlessjs/component";
+import * as m from "frontlessjs/material"
+
+export default newComponent(class {
+    constructor(private name:string){} 
+    render() {
+        return m.text(`Hello ${this.name}`)
+    }
+})
+```
+#### Use the component in another component
+```
+// components/someComponent.ts
+import { newComponent } from "frontlessjs/component";
+import * as m from "frontlessjs/material"
+
+export default newComponent(class {
+    render() {
+        return m.center(await hello("Frontless"))
+    }
+})
+```
+#### Use the component in a Page
+```
+// pages/index.ts
+import { newPage } from "frontlessjs/component";
+import * as m from "frontlessjs/material"
+import hello from "../components/hello"
+
+export default newPage(class {
+    async render() {
+        return m.center(await hello("Frontless"))
+    }
+})
+```
+#### Component actions
+Component actions are server-side functions called by `click` or `form`.
+```
+const demoComponent = newComponent(class {
+    foo() {
+    }
+    bar() {
+    }
+    render() {
+        return row([
+            click('foo', button('Call foo')),
+            form('bar', [
+                button('Submit')
+            ])
+        ])
+    }
+})
+```
+
+#### Built-in methods
+- `load` - called everytime.
+- `noAct` - called when there is no action. 
+- `hasAct` - called when there is an aciton.
+- `render` - called to render HTML string.
+
+The order in which methods are executed: `load` > `noAct/hasAct` > `action method` > `render`
+
+
+#### Component constructor
+```
+export default newComponent(class {
+    constructor(private key:any,...otherArgs:any){} 
+})
+```
+The first argument of constructor is the `key` of the component. `key` will be send to the client's web browser. Do not pass sensitive or large data to `key`. Sometimes you need to separate your data to keep the `key` clean. For example, if you are creating a component to render a user data, do **not** use `constructor(private user:User)`, instead you should use `constructor(private userId:number, private user:User)`, when there is an action, check the `userId` from database:
+```
+const userView = newComponent(class{
+    constructor(private userId:number, private user:User){}
+    async hasAct(){
+        this.user = get_user_from_id(this.userId)
+        if (!this.user){
+            getCtx().err("user not found")
+        }
+    }
+    async follow(){
+        await follow_user_by_id(this.userId)
+    }
+    async unfollow(){
+        await unfollow_user_by_id(this.userId)
+    }
+    render(){
+        return row([
+            text(user.name),
+            is_followed()?click('unfollow',button('Unfollow')):click('follow',button('Follow'))
+        ])
+    }
+})
+```
+
+
+
 ## Context
 Context is an object created for each client request. You can get context anywhere.
 ```
@@ -89,6 +189,7 @@ app.use(async (ctx, next) => {
     await next()
 }
 ```
+
 
 ## SVG icons
 Import
