@@ -1,7 +1,7 @@
 const { log } = console
 import { getCtx, Ctx } from "./context";
 import { components, ComponentResType } from "./component";
-import * as view from "./view";
+import * as view from "./material";
 let apiUrl = process.env.FRONTLESS_API_DEV_URL ?? 'https://api.frontless.dev/v1'
 const action = async () => {
     let ctx = getCtx()

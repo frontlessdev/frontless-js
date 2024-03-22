@@ -1,10 +1,9 @@
-import * as view from './view'
-import { getCtx, Ctx } from './context'
-import { h } from './view'
+import { h, column } from './material'
 import { makeId } from './utils'
 export type Json = { [k: string]: any }
 export type ComponentResType = string | Json | void
 export let components = new Map<string, { fn: any, methods: string[] }>()
+export let appendedJs = ''
 type keyType = {
     [k: string]: string | number | boolean
 }
@@ -13,7 +12,7 @@ type PropType = {
 }
 
 type Args = [...Array<any>]
-export function newComponent<K extends Args, P extends PropType>(cmt: new (...args: K) => any): (...args: K) => any {
+export function newComponent<K extends Args>(cmt: new (...args: K) => any): (...args: K) => any {
     const methods = Object.getOwnPropertyNames(cmt.prototype).filter(n => n != 'constructor')
     let component_name = cmt.name || makeId()
     if (components.has(component_name)) {
@@ -47,7 +46,7 @@ export function newComponent<K extends Args, P extends PropType>(cmt: new (...ar
         let res = await i.render()
 
         let key = { k: (typeof args[0] == 'undefined') ? null : args[0] }
-        let keyString = view.h(JSON.stringify(key))
+        let keyString = h(JSON.stringify(key))
         return `<component name="${component_name}" key="${keyString}"${idStr}>${res}</component>`
 
     }) as any
@@ -57,7 +56,6 @@ export function newPage(cmt: new () => any): () => any {
     let methods = Object.getOwnPropertyNames(cmt.prototype).filter(n => n != 'constructor')
     let component_name = makeId()
     components.set(component_name, { fn: cmt, methods })
-
     return async () => {
         let i = new cmt()
         i.key = {}
@@ -82,13 +80,16 @@ export function newPage(cmt: new () => any): () => any {
         }
         let res = await i.render()
         if (Array.isArray(res)) {
-            res = view.column(res)
+            res = column(res)
         }
-        let keyString = view.h(JSON.stringify(i.key))
+        let keyString = h(JSON.stringify(i.key))
         return `<component name="${component_name}"  key="${keyString}"${idStr}>${res}</component>`
     }
 }
 
+export function appendJs(content: string) {
+    appendedJs += '{' + content + '}'
+}
 
 export function componentRes(res: {
     before?: string,
