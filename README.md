@@ -57,6 +57,7 @@ In the `pages` folder, file names are URL paths.
 #### Dynamic
 - `pages/article/[id].ts` - `http://yourdomain.com/article/123`
 - `pages/user_[name].ts` - `http://yourdomain.com/user_abc`
+
 Dynamic params can be abtained from `ctx.params`
 
 ## Context
