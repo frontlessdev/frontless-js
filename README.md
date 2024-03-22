@@ -83,6 +83,17 @@ app.use(async (ctx, next) => {
 }
 ```
 
+## SVG icons
+Import
+```
+import {icon} from 'frontlessjs/icon`
+```
+Usage
+```
+icon("hourse")
+```
+SVG icon is powered by [Phosphor](https://phosphoricons.com)
+
 ## Materials
 
 - `icon(name: SvgFileNames, size?: "sm" | "normal" | "lg" | "xl" | "2x" | "4x")`: Generates an SVG icon with optional size specification.
