@@ -595,7 +595,6 @@ export function h(unsafe: string | number) {
     if (!unsafe) {
         return ''
     }
-    let ad = 'adf'
     return unsafe.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 
 }

@@ -25,7 +25,6 @@ export type Ctx = {
     path: string
     locals: any
     ipAddress?: string,
-    components_stack: any[]
     cookie: any
     setcookie: (name: string, value: string, days?: number) => void
     err: Function
@@ -68,7 +67,7 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
     }
     let appended_elements: string[] = []
     let ctx: Ctx = {
-        req, res, params: {}, query: url_parse(req.url ?? '', true).query, locals: {}, path: '', html: '', body: {}, me: null, components_stack: [], component: { props: {}, action: '' },
+        req, res, params: {}, query: url_parse(req.url ?? '', true).query, locals: {}, path: '', html: '', body: {}, me: null, component: { props: {}, action: '' },
         _sys: {
             isSent: false,
             totalQueries: 0,
