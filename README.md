@@ -157,8 +157,6 @@ app.use(async (ctx, next) => {
   
 - `section(title: string, body: string)`: Creates a section component with a title and body.
   
-- `ln(...args: string[])`: Creates a vertically aligned container with specified children and spacing.
-  
 - `splitView(first: string, second: string, firstDivPercent: number = 50)`: Creates a split view component with specified width percentages for first and second divisions.
   
 - `input(field: FormField)`: Creates an input field component with specified type, name, placeholder, etc.

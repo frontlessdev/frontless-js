@@ -481,10 +481,6 @@ export function section(title: string, body: string) {
     return `<div class="section"><div class="section_title">${title}</div><div class="section_body">${body}</div></div>`
 }
 
-export function ln(...args: string[]) {
-    return column(args, { gap: '5px', style: { "margin-bottom": "5px" } })
-}
-
 export function splitView(first: string, second: string, firstDivPercent: number = 50) {
     let secondDivPercent = 100 - firstDivPercent
 
