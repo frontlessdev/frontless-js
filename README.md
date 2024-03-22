@@ -58,7 +58,7 @@ In the `pages` folder, file names are URL paths.
 - `pages/article/[id].ts` - `http://yourdomain.com/article/123`
 - `pages/user_[name].ts` - `http://yourdomain.com/user_abc`
 
-Dynamic params can be abtained from `ctx.params`. Example: `ctx.params.id`, `ctx.params.name`
+Dynamic params can be obtained from `ctx.params`. Example: `ctx.params.id`, `ctx.params.name`
 
 ## Component
 #### Create a new component
