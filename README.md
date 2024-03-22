@@ -44,19 +44,19 @@ project
 └───static
     │   logo.png
 ```
-`server.ts` - use this file start your server
-`pages` - put your pages here
-`components` - you can put component files here, or other places
-`static` - serve static files
+- `server.ts` - use this file start your server
+- `pages` - put your pages here
+- `components` - you can put component files here, or other places
+- `static` - serve static files
 
 ## Router
 In the `pages` folder, file names are URL paths.
-Example
-`pages/foo.ts` - `http://yourdomain.com/foo`
-`pages/foo/bar.ts` - `http://yourdomain.com/foo/bar`
-Or dynamic
-`pages/article/[id].ts` - `http://yourdomain.com/article/123`
-`pages/user_[name].ts` - `http://yourdomain.com/user_abc`
+#### Example
+- `pages/foo.ts` - `http://yourdomain.com/foo`
+- `pages/foo/bar.ts` - `http://yourdomain.com/foo/bar`
+#### Dynamic
+- `pages/article/[id].ts` - `http://yourdomain.com/article/123`
+- `pages/user_[name].ts` - `http://yourdomain.com/user_abc`
 Dynamic params can be abtained from `ctx.params`
 
 ## Context
@@ -67,19 +67,19 @@ function test(){
     const ctx = getCtx()
 }
 ```
-`ctx.locals` - You can add your custom data to this variable.
-`ctx.req` - Node http server Request.
-`ctx.res` - Node http server Response.
-`ctx.send()` - Send html string to client.
-`ctx.json()` - Send JSON object to client.
-`ctx.err()` - Throw and send error message to client.
-`ctx.setcookie()` - setcookie(name,value,days?). Default 365 days.
-`ctx.query` - contains the URL query string `someurl?foo=bar`
-`ctx.params` - contains the dynamic page route params `pages/[slug].ts`
-`ctx.ipAddress` - Client real IP address. 
-`ctx.cookie` - get client cookies. `ctx.cookie.name1`
-`ctx.redirect()` - send a page level redirect.
-`ctx.refresh()` - page level refresh.
+- `ctx.locals` - You can add your custom data to this variable.
+- `ctx.req` - Node http server Request.
+- `ctx.res` - Node http server Response.
+- `ctx.send()` - Send html string to client.
+- `ctx.json()` - Send JSON object to client.
+- `ctx.err()` - Throw and send error message to client.
+- `ctx.setcookie()` - setcookie(name,value,days?). Default 365 days.
+- `ctx.query` - contains the URL query string `someurl?foo=bar`
+- `ctx.params` - contains the dynamic page route params `pages/[slug].ts`
+- `ctx.ipAddress` - Client real IP address. 
+- `ctx.cookie` - get client cookies. `ctx.cookie.name1`
+- `ctx.redirect()` - send a page level redirect.
+- `ctx.refresh()` - page level refresh.
 
 ## Middleware
 Middleware must use async/await, otherwise some errors can not be handle.
