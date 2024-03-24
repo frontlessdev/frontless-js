@@ -185,6 +185,30 @@ export function link(href: string, child: string, props: baseProps = {}) {
     return `<a href="${href}"${style_class_to_str(props)}>${child}</a>`
 }
 
+export function action(action: string, child: string, props: { target?: "self" | "modal", title?: string, postData?: { [k: string]: any } } & baseProps = {}) {
+    {
+        if (!action) {
+            action = ''
+        }
+        let titleStr = ''
+        if (typeof props.title == 'string') {
+            titleStr = ` title="${h(props.title)}"`
+        }
+        if (props?.target == 'modal') {
+            append_class(props, 'modal_btn')
+        }
+        else {
+            append_class(props, 'component_btn')
+        }
+        let postDataStr = ''
+        if (props?.postData && Object.keys(props.postData).length) {
+            props.postData.testb = 123
+            postDataStr = ` data-postdata="${h(JSON.stringify(props.postData))}"`
+        }
+        return `<a component-action="${action}"${postDataStr ?? ''}${style_class_to_str(props)}${titleStr}>${child}</a>`;
+    }
+}
+
 export function click(action: string, child: string, props: { target?: "self" | "modal", title?: string, postData?: { [k: string]: any } } & baseProps = {}) {
     {
         if (!action) {
