@@ -7,37 +7,47 @@ onClick(".modal-close-btn", (ele) => {
 // open a modal
 onClick(".modal_btn", async function (ele) {
     handle_component_btn_click(ele, async (component, data, action_url) => {
-        // check modl already exists
-        let modal = document.querySelector(".commonModal")
-        if (!modal) {
-            component.insertAdjacentHTML("beforeend", modal_template());
-            modal = document.querySelector(`.commonModal`)
-            modal.style.display = 'block'
-        }
-        document.querySelector(`.modal-title`).innerHTML = ele.getAttribute("title") ?? ''
+        let modal = modal_before_submit(component, ele.getAttribute("title"))
         let res = await jsonPost(action_url, data)
-        document.querySelector(`.modal-body`).style.maxHeight = '700px'
-        setTimeout(() => {
-            document.querySelector(`.modal-body`).style.overflowY = 'auto'
-        }, 160);
-        if (typeof res == 'string') {
-            res = JSON.parse(res)
-        }
-        if (typeof res.css == 'string' && res.css.length > 0) {
-            update_dynamic_css(res.css)
-        }
-        let modal_body = document.querySelector(`.modal-body`)
-        if (res.err) {
-            modal_body.innerHTML = res.err
-        }
-        else {
-            modal_body.innerHTML = res.html
-        }
-        setTimeout(() => {
-            modal_body.querySelectorAll('input[type="text"],input[type="password"],textarea')[0]?.focus()
-        }, 100);
+        modal_after_submit(res)
     })
 })
+
+// target modal 
+function modal_before_submit(component, title = null) {
+    let modal = document.querySelector(".commonModal")
+    if (!modal) {
+        component.insertAdjacentHTML("beforeend", modal_template());
+        modal = document.querySelector(`.commonModal`)
+        modal.style.display = 'block'
+    }
+    if (title) {
+        document.querySelector(`.modal-title`).innerHTML = title
+    }
+    return modal
+}
+function modal_after_submit(res) {
+    document.querySelector(`.modal-body`).style.maxHeight = '700px'
+    setTimeout(() => {
+        document.querySelector(`.modal-body`).style.overflowY = 'auto'
+    }, 160);
+    if (typeof res == 'string') {
+        res = JSON.parse(res)
+    }
+    if (typeof res.css == 'string' && res.css.length > 0) {
+        update_dynamic_css(res.css)
+    }
+    let modal_body = document.querySelector(`.modal-body`)
+    if (res.err) {
+        modal_body.innerHTML = res.err
+    }
+    else {
+        modal_body.innerHTML = res.widget
+    }
+    setTimeout(() => {
+        modal_body.querySelectorAll('input[type="text"],input[type="password"],textarea')[0]?.focus()
+    }, 100);
+}
 
 // insert updated dynamic css
 function update_dynamic_css(css) {
@@ -61,13 +71,13 @@ onClick(".component_btn", async function (ele) {
         let res = await jsonPost(action_url, data)
         if (res.err) {
             alert(res.err)
-            component.querySelectorAll("button").forEach(function (btn) {
-                btn.disabled = false
-            })
         }
         else {
             component_handle_res(component, res)
         }
+        component.querySelectorAll("button").forEach(function (btn) {
+            btn.disabled = false
+        })
     })
 })
 
@@ -92,9 +102,12 @@ onSubmit(".component_form", async (ele) => {
             return [key, val.length > 1 ? val : val.pop()]
         }))
         data = { ...data, ...formDataObject }
-        log('data', data)
         component.querySelector(".form-error-box").style.display = 'none'
+        if (ele.classList.contains("target_modal")) {
+            modal_before_submit(component)
+        }
         let res = await jsonPost(action_url, data)
+        remove_loader(ele)
         component.classList.remove("submitting")
         if (res.err) {
             component.querySelector(".form-error-box").innerHTML = res.err
@@ -102,16 +115,22 @@ onSubmit(".component_form", async (ele) => {
             component.classList.remove("submitting")
         }
         else {
-            component_handle_res(component, res)
+            if (ele.classList.contains("target_modal")) {
+                modal_after_submit(res)
+            }
+            else {
+                component_handle_res(component, res)
+            }
         }
-        remove_loader(ele)
     })
 })
 function add_loader(ele) {
-    ele.insertAdjacentHTML("beforeend", `<div class="loader"></div>`)
+    if (ele) {
+        ele.insertAdjacentHTML("beforeend", `<div class="loader"></div>`)
+    }
 }
 function remove_loader(ele) {
-    ele.querySelector(".loader").remove()
+    ele?.querySelector(".loader")?.remove()
 }
 // close modal by Esc key
 function escapeHtml(s) {
@@ -156,41 +175,27 @@ function component_handle_res(component, res) {
     }
     let name = component.getAttribute('name')
     let key = component.getAttribute('key')
-    let cmts = []
-    document.querySelectorAll(`component[name='${name}'][key='${key}']`).forEach(function (e) {
-        cmts.push(e)
-    })
     if (typeof res.css == 'string' && res.css.length > 0) {
         update_dynamic_css(res.css)
     }
-    for (let cmt of cmts) {
-        if (typeof res.html == 'string') {
-            if (res.html == '') {
-                cmt.style.height = cmt.offsetHeight + 'px'
-                cmt.style.overflow = 'hidden'
-                setTimeout(() => {
-                    cmt.style.height = '1px'
-                }, 10);
-                setTimeout(() => {
-                    cmt.remove()
-                }, 210);
-            }
-            else {
-                cmt.innerHTML = res.html;
 
-            }
+    if (typeof res.widget == 'string') {
+        if (res.widget == '') {
+            component.style.height = component.offsetHeight + 'px'
+            component.style.overflow = 'hidden'
+            setTimeout(() => {
+                component.style.height = '1px'
+            }, 10);
+            setTimeout(() => {
+                component.remove()
+            }, 210);
         }
-        if (typeof res.before == 'string') {
-            cmt.insertAdjacentHTML("beforebegin", res.before)
-        }
-        if (typeof res.after == 'string') {
-            cmt.insertAdjacentHTML("afterend", res.after)
-        }
-        if (typeof res.append == 'string') {
-            cmt.insertAdjacentHTML("beforeend", res.append)
-        }
-        if (typeof res.before == 'string') {
-            cmt.insertAdjacentHTML("afterbegin", res.prepend)
+        else {
+            component.innerHTML = res.widget
+            // let div = document.createElement('div');
+            // div.innerHTML = res.html;
+            // traverseNodes(component, div, 0)
+
         }
     }
 }
@@ -205,18 +210,20 @@ function handle_component_btn_click(ele, cb) {
     if (component_action.match(':')) {
         let arr = component_action.split(':')
         component_action = arr[1]
-        component = document.querySelector(arr[0]).closest("component")
+        component = document.querySelector(arr[0]).closest(".component")
     }
     else {
-        component = ele.closest('component')
+        component = ele.closest('.component')
     }
     if (!component) {
         log('component not found')
         return
     }
-    let action_url = '/action/' + component.getAttribute('name') + '/' + component_action
+    let component_name = component.getAttribute("name")
+    let action_url = '/action/' + component_name + '/' + component_action
     log('action_url', action_url)
-    let data = { component_key: component.getAttribute('key') }
+    let data = {}
+    data['component_key'] = component.getAttribute('key')
     if (ele.getAttribute('data-postdata')) {
         let postdata = JSON.parse(ele.getAttribute('data-postdata'))
         for (let [k, v] of Object.entries(postdata)) {
@@ -289,7 +296,9 @@ async function jsonPost(url = "", data = {}) {
         referrerPolicy: "no-referrer",
         body: JSON.stringify(data),
     });
-    return await response.json();
+    let j = await response.json()
+    log('response.json()', j)
+    return j;
 }
 function on(eventName, target, callback) {
     document.addEventListener(eventName, (event) => {
@@ -297,6 +306,7 @@ function on(eventName, target, callback) {
             event.preventDefault()
             callback(event.target.closest(target), event)
         }
+        return false
     })
 }
 
@@ -333,3 +343,86 @@ onClickOutside(".dropdown", function () {
         element.style.display = 'none'
     });
 })
+
+
+// handler node changing
+// let showed = false
+function traverseNodes(originalNode, newNode, depth) {
+    const isListView = originalNode.classList.contains('indexedList');
+    // loop original node detect removed elements
+    let index = 0
+    originalNode.childNodes.forEach(originalChild => {
+        if (originalChild.nodeType === Node.ELEMENT_NODE) {
+            let newChild
+            if (isListView) {
+                const idx = originalChild.getAttribute('idx');
+                newChild = newNode.querySelector(`[idx="${idx}"]`);
+
+                if (!newChild) {
+                    // remove node
+                    slideUp(originalChild)
+                } else if (originalChild.innerHTML != newChild.innerHTML) {
+                    // modify node
+                    // newChild.style.background = "green"
+                }
+            } else {
+                // if not listview, only considering modify
+                newChild = newNode.children[index];
+                if (!newChild || newChild.innerHTML == "") {
+                    slideUp(originalChild)
+                }
+                else {
+                    originalChild.innerHTML = newChild.innerHTML
+                }
+                /*
+                // developing: animated
+                index++
+                if (originalChild?.firstChild?.nodeType === 1 && depth <= 5) {
+                    traverseNodes(originalChild, newChild, depth + 1);
+                }
+                else {
+                    if (!newChild || newChild.innerHTML == "") {
+                        slideUp(originalChild)
+                    }
+                    else if (originalChild.innerHTML !== newChild.innerHTML) {
+                        originalChild.innerHTML = newChild.innerHTML
+                    }
+                    else if (originalChild.innerHTML !== newChild.innerHTML) {
+                        originalChild.innerHTML = newChild.innerHTML
+                        originalChild.classList.add("fadeIn")
+                        originalChild.style.opacity = 0
+                        setTimeout(() => {
+                            originalChild.style.opacity = 1
+                        }, 100);
+                    }
+                }
+                */
+            }
+        }
+    });
+    if (isListView) {
+        // loop new node
+        newNode.childNodes.forEach(newChild => {
+            if (newChild.nodeType === Node.ELEMENT_NODE) {
+                const idx = newChild.getAttribute('idx');
+                const originalChild = originalNode.querySelector(`[idx="${idx}"]`);
+                if (!originalChild) {
+                    // insert new node
+                    // slideDown(newChild)
+                    newChild.classList.add("slideDown")
+                }
+            }
+        });
+        originalNode.innerHTML = newNode.innerHTML
+    }
+}
+function slideUp(element, duration = 500) {
+    log('element.offsetHeight', element.offsetHeight)
+    element.style.height = element.offsetHeight + "px"
+    element.style.transition = "height 500ms ease-in"
+    element.style.overflow = "hidden"
+    setTimeout(() => {
+        element.style.height = "0px"
+    }, 10);
+
+}

@@ -1,16 +1,15 @@
-import http from 'node:http';
+import type http from 'node:http';
 import { AsyncLocalStorage } from "node:async_hooks";
 import cookie from 'cookie'
 import { parse as url_parse } from 'node:url';
-import { column } from './material';
 import { styleStore } from './material';
-import { appConfig } from '.';
-import { staticVersion } from '.';
+import { appConfig } from './index';
+import { staticVersion } from './index';
+import type { ActionRes, Widget } from './component';
 
 interface req extends http.IncomingMessage {
     body?: any
 }
-type link = { name: string, url: string }
 export type Ctx = {
     req: req
     res: http.ServerResponse
@@ -18,7 +17,7 @@ export type Ctx = {
     body: { [k: string]: any }
     html: string
     json: Function
-    send: (output: string | string[]) => void
+    close: (element: Widget) => void
     append: (output: string | string[]) => void
     params: { [k: string]: any }
     query: { [k: string]: any }
@@ -32,8 +31,10 @@ export type Ctx = {
     refresh: () => void
     _sys: {
         isSent: boolean,
+        actionRes: ActionRes,
+        cssUpdated?: { id: string, str: string, hoverStr?: string }[]
+        componentStack: any[],
         [k: string]: any,
-        cssUpdated?: { id: string, str: string }[]
     }
     component: {
         key?: { [k: string]: any },
@@ -48,8 +49,8 @@ export type Ctx = {
 
 const asyncLocalStorage = new AsyncLocalStorage();
 
-export function storeCtx(ctx: Ctx, fn: () => any) {
-    return asyncLocalStorage.run(ctx, fn);
+export function storeCtx(ctx: Ctx, fn: () => any): void {
+    asyncLocalStorage.run(ctx, fn);
 }
 
 export function getCtx(): Ctx {
@@ -57,7 +58,7 @@ export function getCtx(): Ctx {
 }
 
 
-export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, layout: (body: string) => Promise<string> | string, errorHandler: (ctx: Ctx, error: any) => void) {
+export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, layout: (body: string) => Promise<string> | string, errorHandler: (ctx: Ctx, error: any) => void): Ctx {
 
     let cookies: string[] = []
     let setcookies = () => {
@@ -66,12 +67,17 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
         }
     }
     let appended_elements: string[] = []
+    let url = new URL("http://" + req.headers.host + '/' + req.url)
     let ctx: Ctx = {
-        req, res, params: {}, query: url_parse(req.url ?? '', true).query, locals: {}, path: '', html: '', body: {}, me: null, component: { props: {}, action: '' },
+        req, res, params: {}, query: url_parse(req.url ?? '', true).query, locals: {},
+        path: url.pathname.replace('//', '/').replace(/\/$/, ""),
+        html: '', body: {}, me: null, component: { props: {}, action: '' },
         _sys: {
             isSent: false,
             totalQueries: 0,
             queries: [],
+            componentStack: [],
+            actionRes: {}
         },
         cookie: cookie.parse(req.headers.cookie || ''),
         json: (json: { [k: string]: any }) => {
@@ -96,11 +102,27 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
                 appended_elements.push(output)
             }
         },
-        send: async (element: string | string[]) => {
+        close: async (element: Widget) => {
             if (ctx._sys.isSent) {
                 return
             }
+            if (ctx.req.headers['user-agent'] == 'dart' || ctx.query.useragent == 'dart') {
+                if (typeof element != 'object' || typeof element.json != 'function') {
+                    ctx.json({ err: 'not a Widget' })
+                }
+                ctx.json({ widget: element.json() })
+                return
+            }
             ctx._sys.isSent = true
+            if (typeof element != 'object' || typeof element.html != 'function') {
+                res.writeHead(200, {
+                    "Content-Type": "text/html; charset=utf-8",
+                });
+                res.end(`Page handler must return an Widget. Example: Text("hello").<br />
+                raw body:<br />
+                ${element}`)
+                return
+            }
             let head = `
             <script src="/main.${staticVersion}.js"></script>
     <style type="text/css" media="all">@import "/main.${staticVersion}.css";</style>`
@@ -108,21 +130,10 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
             // need to catch error because template support components
             try {
                 if (appended_elements.length) {
-                    if (typeof element == 'object') {
-                        html = await layout(column([...appended_elements, ...element]))
-                    }
-                    else {
-                        html = await layout(column([...appended_elements, element]))
-                    }
-                }
-                if (typeof element == 'object') {
-                    html = await layout(column(element))
-                }
-                else if (typeof element == 'string') {
-                    html = await layout(element)
+                    html = await layout(appended_elements.join("") + element.html())
                 }
                 else {
-                    html = "unknown output"
+                    html = await layout(element.html())
                 }
             } catch (e) {
                 errorHandler(ctx, e)
@@ -130,11 +141,11 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
             }
             if (styleStore.length) {
                 head += gen_style()
-                html = html.replace(/<head>/i, '<head>' + head + `
+            }
+            html = html.replace(/<head>/i, '<head>' + head + `
                 <script>
                 console.log('total Queries',${ctx._sys.totalQueries})
                 </script>`)
-            }
             res.writeHead(200, {
                 "Content-Type": "text/html; charset=utf-8",
             });
@@ -180,6 +191,14 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
     return ctx
 }
 
-function gen_style() {
-    return '\n<style id="dstyle">\n' + styleStore.map(style => `.${style.id}{${style.str}}`).join("\n") + '\n</style>\n'
+function gen_style(): string {
+    return '\n<style id="dstyle">\n' +
+        // style
+        styleStore.map(style => `.${style.id}{${style.str}}`).join("\n") +
+        // hover style
+        styleStore.map(style => {
+            let target = style.hoverByClass ? `.${style.hoverByClass}:hover .${style.id}` : `.${style.id}:hover`
+            return style.hoverStr ? `${target} {${style.hoverStr}}` : ''
+        }).join("\n") +
+        '\n</style>\n'
 }

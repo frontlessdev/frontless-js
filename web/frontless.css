@@ -11,11 +11,6 @@
     --main-link-hover: #333;
     --secondary-link: #333;
 
-    --button-text: #333;
-    --button-bg: #eee;
-    --button-filled-bg: #b8b8b8;
-    --button-filled-text: #eee;
-
     --border: #d6d6d6;
     --border-soft: #eee;
     --border-strong: #c2c2c2;
@@ -73,34 +68,17 @@ dd {
     margin-left: 0;
 }
 
-component {
+.component {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    width: 100%;
     overflow: visible;
     transition: all 0.2s linear;
 }
 
-/* button */
-
 button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    width: auto;
     border: none;
-    height: 30px;
-    border-radius: 30px;
-    cursor: pointer;
     background: none;
-    padding: 0 10px;
-    text-wrap: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    transition: background 0.1s linear;
-    margin-bottom: 1px;
+    cursor: pointer;
 }
 
 .icon-btn {
@@ -116,68 +94,6 @@ button {
     display: inline-flex;
 }
 
-button i {
-    font-size: 1.2em;
-}
-
-
-button:disabled {
-    opacity: 0.8;
-    cursor: progress;
-}
-
-.button-regular {
-    color: var(--button-text);
-    background-color: var(--button-bg);
-}
-
-.button-regular:hover {
-    color: var(--button-hover-text);
-    background: var(--button-hover-bg, #dbdbdb);
-}
-
-.button-text:hover {
-    color: var(--button-hover-text);
-    background: var(--button-hover-bg, #eee);
-}
-
-.button-menu {
-    width: 100%;
-    border-radius: 0;
-    justify-content: flex-start;
-}
-
-.button-menu:hover {
-    color: var(--button-hover-text);
-    background: var(--button-hover-bg, #eee);
-}
-
-.button-elevated {
-    color: var(--button-text);
-    background-color: var(--button-bg);
-    box-shadow: 2px 2px 3px #999;
-}
-
-.button-elevated:hover {
-    color: var(--button-hover-text);
-    background: var(--button-hover-bg, #dbdbdb);
-}
-
-.button-filled {
-    color: var(--button-filled-text);
-    background-color: var(--button-filled-bg);
-}
-
-.button-filled:hover {
-    color: var(--button-filled-hover-text, white);
-    background: var(--button-filled-hover-bg, #686868);
-}
-
-/* splitView*/
-.splitview {
-    display: flex;
-    flex-wrap: wrap;
-}
 
 .splitview>div {
     display: flex;
@@ -244,6 +160,7 @@ button:disabled {
     flex-direction: column;
     display: flex;
     align-items: stretch;
+    width: 100%;
 }
 
 .form-ln {
@@ -341,31 +258,23 @@ select {
 }
 
 .slideDown {
-    animation: _slideDown 0.5s;
+    overflow: hidden;
+    animation: _slideDown 1s;
 }
 
 @keyframes _slideDown {
     0% {
-        max-height: 1px;
+        max-height: 0px;
     }
 
     100% {
-        max-height: 900px;
+        max-height: 500px;
     }
 }
 
 .fadeIn {
-    animation: _fadein 0.5s;
-}
-
-@keyframes _fadein {
-    0% {
-        opacity: 0.1;
-    }
-
-    100% {
-        opacity: 1;
-    }
+    /* opacity: 0; */
+    transition: opacity 0.2s ease-out;
 }
 
 
@@ -392,6 +301,10 @@ select {
     display: inline-block;
 }
 
+span {
+    display: inline-block;
+}
+
 span.normal {
     font-size: 15px;
 }
@@ -400,12 +313,6 @@ span.lg {
     font-size: 18px;
 }
 
-.btnSubmitting .button {
-    cursor: progress;
-    background: linear-gradient(130deg, #dadde0, #adadad, #dadde0);
-    background-size: 200% 200%;
-    animation: btnbg 1s ease infinite;
-}
 
 a {
     text-decoration: none;
@@ -415,12 +322,9 @@ a.active {
     font-weight: bold;
 }
 
-.component {
-    margin: 5px;
-    padding: 5px;
-}
 
 .box {
+    display: flex;
     margin: 10px;
     padding: 10px;
     border: 1px solid #eee;
@@ -435,6 +339,7 @@ a.active {
 }
 
 .row {
+    display: flex;
     flex-direction: row;
     align-items: center;
 }
@@ -446,6 +351,7 @@ a.active {
 }
 
 .column {
+    display: flex;
     flex-direction: column;
     align-items: stretch;
 }
@@ -612,6 +518,7 @@ img {
     height: 100%;
     justify-content: center;
     align-items: center;
+    z-index: 999;
 }
 
 .modal-content-container {
@@ -667,7 +574,7 @@ img {
     box-shadow: 2px 2px 2px var(--shadow);
     border-radius: 6px;
     min-width: 200px;
-    z-index: 99;
+    z-index: 9;
 }
 
 /* loader */

@@ -1,23 +1,34 @@
 import http from 'node:http';
 import type { Ctx } from './context';
-import { router, append_route } from './router';
+import { router, route, Handler } from './router';
 import fs from 'node:fs';
 import { storeCtx, initCtx } from './context';
 import path from 'node:path';
 import formidable from 'formidable';
 import action from './action';
 import { makeId } from './utils';
-export let staticVersion = makeId()
+export let staticVersion: string = makeId()
+import { setDefaultSaturation } from './material';
 type MiddleWare = (ctx: Ctx, next: Function) => Promise<void>
 type Config = {
     htmlErrorHandler?: (errMessage: string) => string,
     /** used when your server is behind a proxy server. Default: x-forwarded-for */
-    proxyHeader?: string
+    proxyHeader?: string,
+    defaultSaturation?: string
 }
 export let appConfig: Config = {
 
 }
-let append_css = ''
+let appended_js = ''
+let appended_css = ''
+
+export function append_js(content: string) {
+    appended_js += `
+{
+${content}
+}
+`
+}
 
 // default layout
 let layout = (body: string) => {
@@ -43,8 +54,16 @@ async function call_middleware(index: number, ctx: Ctx, route_handler: (...args:
         throw e
     }
 }
+type App = {
+    route: (path: string, handler: Handler) => void,
+    errorHandler: (ctx: Ctx, e: any) => void,
+    use: (fn: MiddleWare) => void,
+    htmlErrorHandler: (message: string) => string,
+    listen: (port: number) => void
 
-let app = {
+}
+let app: App = {
+    route: route,
     errorHandler: (ctx: Ctx, e: any) => {
         let message = ''
         if (typeof e == 'object') { // sys generated err
@@ -88,7 +107,7 @@ let app = {
             ctx.res.end(app.htmlErrorHandler(message))
         }
     },
-    htmlErrorHandler: (message: string) => {
+    htmlErrorHandler: (message: string): string => {
         return `<html><title>Error</title><body><pre>${message}</pre></body></html>`
     },
     use: (fn: MiddleWare) => {
@@ -100,18 +119,18 @@ let app = {
             let appended_elements = []
             // js
             if (req.url == `/main.${staticVersion}.js`) {
-                fs.readFile(__dirname + '/frontless.js', function (error, content) {
+                fs.readFile(__dirname + '/web/frontless.js', function (error, content) {
                     res.writeHead(200, {
                         'Content-Type': 'text/javascript',
                         'Cache-Control': 'public, max-age=' + static_age
                     });
-                    res.end(content, 'utf-8');
+                    res.end(content + appended_js, 'utf-8');
                 })
                 return
             }
             // css
             if (req.url == `/main.${staticVersion}.css`) {
-                fs.readFile(__dirname + '/frontless.css', function (error, content) {
+                fs.readFile(__dirname + '/web/frontless.css', function (error, content) {
                     res.writeHead(200, {
                         'Content-Type': 'text/css',
                         'Cache-Control': 'public, max-age=' + static_age
@@ -120,7 +139,7 @@ let app = {
                         res.end('/* error reading frontless.css */', 'utf-8');
                     }
                     else {
-                        res.end(content + "\n/* appended css */\n" + append_css, 'utf-8');
+                        res.end(content + "\n/* appended css */\n" + appended_css, 'utf-8');
                     }
                 })
                 return
@@ -131,11 +150,12 @@ let app = {
                 return
             }
             let ctx = initCtx(req, res, layout, app.errorHandler)
-            // get POST form data 
+
             if (req.method == 'POST') {
                 const form = formidable({});
                 try {
                     let [body, files] = await form.parse(req);
+                    console.log('f body', body)
                     ctx.files = files
                     for (let k in body) {
                         let field = body[k]
@@ -160,17 +180,17 @@ let app = {
             }
 
             // route
-            let page_handler: () => void
+            let pageHandler: () => void
             if (req.url?.match(/\/action\/[\d\w_\-]+\/[\d\w_\-]+/)) {
-                page_handler = action
+                pageHandler = action
             }
             else {
                 let r = router(ctx)
                 if (r.matched) {
-                    page_handler = async () => {
+                    pageHandler = async () => {
                         try {
-                            let res = await r.handler(ctx)
-                            ctx.send(res)
+                            let pageWidget = await r.handler(ctx)
+                            ctx.close(pageWidget)
                         } catch (e) {
                             throw e
                         }
@@ -187,7 +207,7 @@ let app = {
 
             storeCtx(ctx, async () => {
                 try {
-                    await call_middleware(middlewares.length - 1, ctx, page_handler)
+                    await call_middleware(middlewares.length - 1, ctx, pageHandler)
                 } catch (e) {
                     if (ctx._sys.isSent) {
                         return
@@ -207,7 +227,7 @@ let app = {
 }
 
 // load routes and page components from "pages" folder
-export function load_pages(path = 'pages') {
+export function load_pages(path = 'pages'): void {
     fs.readdirSync(process.cwd() + '/' + path).forEach(async function (filename) {
         let reletive_filepath = path + '/' + filename;
         let filepath = process.cwd() + '/' + reletive_filepath
@@ -219,7 +239,7 @@ export function load_pages(path = 'pages') {
             layout = render_.default
         }
         else if (filename == '_layout.css') {
-            append_css = fs.readFileSync(filepath, { encoding: 'utf8', flag: 'r' })
+            appended_css = fs.readFileSync(filepath, { encoding: 'utf8', flag: 'r' })
         }
         else if (filename.match(/\.js|\.ts$/)) {
             append_route_from_file({ path: reletive_filepath, name: reletive_filepath })
@@ -235,7 +255,7 @@ async function append_route_from_file(file: { path: string, name: string }) {
     }
     route_path = '/' + route_path
     let handler = await import(process.cwd() + '/' + file.path)
-    append_route(route_path, handler.default)
+    route(route_path, handler.default)
 }
 
 // serve static files from the "static" folder
@@ -282,11 +302,16 @@ function serve_static(req: http.IncomingMessage, res: http.ServerResponse) {
 }
 
 // export main api
-export default function Frontless(config: Config = {}) {
+export default function Frontless(config: Config = {}): App {
     if (typeof config.htmlErrorHandler == 'function') {
         app.htmlErrorHandler = config.htmlErrorHandler
+    }
+    if (config.defaultSaturation) {
+        setDefaultSaturation(config.defaultSaturation)
     }
     appConfig = config
     return app
 }
 
+export * from './component'
+export * from './context'

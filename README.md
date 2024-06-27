@@ -31,7 +31,7 @@ cd my-app
 tsx server.ts
 ```
 
-## Project Structure
+## File Structure
 ```
 project
 │   server.ts  
@@ -44,122 +44,58 @@ project
 └───static
     │   logo.png
 ```
-- `server.ts` - use this file start your server
+- `server.ts` - the file to start your server
 - `pages` - put your pages here
 - `components` - you can put component files here, or other places
 - `static` - serve static files
 
 ## Router
 In the `pages` folder, file names are URL paths.
-#### Example
+#### Static path
 - `pages/foo.ts` - `http://yourdomain.com/foo`
 - `pages/foo/bar.ts` - `http://yourdomain.com/foo/bar`
-#### Dynamic
+#### Dynamic path
 - `pages/article/[id].ts` - `http://yourdomain.com/article/123`
 - `pages/user_[name].ts` - `http://yourdomain.com/user_abc`
+Dynamic params can be obtained from object `ctx.params`.
 
-Dynamic params can be obtained from `ctx.params`. Example: `ctx.params.id`, `ctx.params.name`
+#### Create a new page
+
+```
+// pages/article/[id].ts
+import {text} from 'frontlessjs/material'
+export default async () => {
+    return text('Article ID:'+getCtx().params.id)
+}
+```
 
 ## Component
 #### Create a new component
 ```
-// components/hello.ts
-import { newComponent } from "frontlessjs/component";
-import * as m from "frontlessjs/material"
-
-export default newComponent(class {
-    constructor(private name:string){} 
-    render() {
-        return m.text(`Hello ${this.name}`)
+// components/test.ts
+import { Component,useAction } from "frontlessjs/component";
+import {text,textButton} from "frontlessjs/material"
+let num = 0
+export default Component(async function test() {
+    const { action } = useAction()
+    switch(action){
+        case 'inc':
+            num++
+            break
     }
-})
-```
-#### Use the component in another component
-```
-// components/someComponent.ts
-import { newComponent } from "frontlessjs/component";
-import * as m from "frontlessjs/material"
-import hello from "../components/hello"
-
-export default newComponent(class {
-    render() {
-        return m.center(await hello("Frontless"))
-    }
+    return textButton(num.toString(),{action:'inc'})
 })
 ```
 #### Use the component in a Page
 ```
 // pages/index.ts
-import { newPage } from "frontlessjs/component";
-import * as m from "frontlessjs/material"
-import hello from "../components/hello"
+import {center} from "frontlessjs/material"
+import test from "../components/test"
 
-export default newPage(class {
-    async render() {
-        return m.center(await hello("Frontless"))
-    }
+export default async ()=> {
+    return center(await test())
 })
 ```
-#### Component Actions
-Component Actions are server-side functions invoke by `click` or `form`.
-```
-const demoComponent = newComponent(class {
-    foo() {
-    }
-    bar() {
-    }
-    render() {
-        return row([
-            click('foo', button('Call foo')),
-            form('bar', [
-                button('Submit')
-            ])
-        ])
-    }
-})
-```
-
-#### Built-in methods
-- `load` - called everytime.
-- `noAct` - called when there is no action. 
-- `hasAct` - called when there is an aciton.
-- `render` - called to render HTML string.
-
-The order in which methods are executed: `load` > `noAct/hasAct` > `action method` > `render`
-
-
-#### Component constructor
-```
-export default newComponent(class {
-    constructor(private key:any,...otherArgs:any){} 
-})
-```
-The first argument of constructor is the `key` of the component. `key` will be send to clients' web browsers. Do not pass sensitive or large data to `key`. Sometimes you need to separate your data to keep the `key` clean. For example, if you are creating a component to render a user view, do **not** use `constructor(private user:User)`, instead you should use `constructor(private userId:number, private user:User)`, when there is an action, check the `userId` from database:
-```
-const userView = newComponent(class{
-    constructor(private userId:number, private user:User){}
-    async hasAct(){
-        this.user = get_user_from_database(this.userId)
-        if (!this.user){
-            getCtx().err("user not found")
-        }
-    }
-    async follow(){
-        await follow_user_by_id(this.userId)
-    }
-    async unfollow(){
-        await unfollow_user_by_id(this.userId)
-    }
-    render(){
-        return row([
-            text(user.name),
-            is_followed()?click('unfollow',button('Unfollow')):click('follow',button('Follow'))
-        ])
-    }
-})
-```
-
-
 
 ## Context
 Context is an object created for each client request. You can get context anywhere.
@@ -177,7 +113,7 @@ function test(){
 - `ctx.err()` - Throw and send error message to client.
 - `ctx.setcookie()` - setcookie(name,value,days?). Default 365 days.
 - `ctx.query` - contains the URL query string `someurl?foo=bar`
-- `ctx.params` - contains the dynamic page route params `pages/[slug].ts`
+- `ctx.params` - contains the dynamic page route params `pages/[slug].ts` -> `ctx.params.slug`
 - `ctx.ipAddress` - Client real IP address. 
 - `ctx.cookie` - get client cookies. `ctx.cookie.name1`
 - `ctx.redirect()` - send a page level redirect.
@@ -212,47 +148,27 @@ Materials are functions to generate user interface
   
 - `p(child: string)`: Generates a paragraph (`<p>`) tag containing the provided content.
   
-- `paper(child: string)`: Creates a container with a paper-like effect, containing the provided content.
   
-- `h1(heading: string)`: Creates a level-one heading (`<h1>`) tag displaying the given heading text.
+- `list(children: Widget[])`: Creates an unordered list (`<ul>`) containing the provided items (`<li>`).
   
-- `h2(heading: string)`: Creates a level-two heading (`<h2>`) tag displaying the given heading text.
-  
-- `h3(heading: string)`: Creates a level-three heading (`<h3>`) tag displaying the given heading text.
-  
-- `h4(heading: string)`: Creates a level-four heading (`<h4>`) tag displaying the given heading text.
-  
-- `list(...args: string[])`: Creates an unordered list (`<ul>`) containing the provided items (`<li>`).
-  
-- `sub(child: string)`: Creates a sub-script (`<sub>`) tag containing the given text.
-  
-- `stack(arr: string[], props: any = {})`: Creates a stacked container with optional properties.
-  
-- `style(child: string, style: StandardPropertiesHyphen = {})`: Generates a div container with specified styles.
-  
-- `card(child: string)`: Creates a card-like container with border and padding, containing the provided content.
-  
-- `div(child: string, props: baseProps & Alignment = {})`: Creates a div container with basic and alignment properties.
+- `stack(children: Positioned[], boxStyle: BoxStyle = {})`: Creates a stacked container with optional properties.
+
+- `box(children: Widget[] | Widget, props: Box & baseProps)`: Creates a container with basic and alignment properties.
   
 - `image(url: string, props: baseProps & { width?: any, height?: any } = {})`: Creates a container with an image, specifying URL and size.
   
-- `expended(child: string, props: baseProps = {})`: Creates a container occupying remaining space, containing the provided content.
+- `expended(child: Widget, props: baseProps = {})`: Creates a container occupying remaining space, containing the provided content.
   
-- `row(arr: any[], props: baseProps & Alignment = {})`: Creates a horizontally aligned container with provided children.
+- `row(children: Widget[], props: baseProps & Box = {})`: Creates a horizontally aligned container with provided children.
+
+- `column(children: Widget[], props: baseProps & Box = {})`: Creates a vertically aligned container with provided children.
+
+- `center(child: Widget, props: baseProps & Box = {})`: Creates a container with centered content.
+
+- `dropdown(button: Widget, body: Widget)`: Creates a dropdown component with a button and dropdown body.
   
-- `dropdown(button: string, body: string)`: Creates a dropdown component with a button and dropdown body.
-  
-- `column(arr: any[], props: baseProps & Alignment = {})`: Creates a vertically aligned container with provided children.
-  
-- `center(child: string, props: baseProps & Alignment = {})`: Creates a container with centered content.
-  
-- `box(child: string[] | string, props: baseProps & Alignment = {})`: Creates a customizable container with child elements.
-  
-- `link(href: string, child: string, props: baseProps = {})`: Creates a hyperlink (`<a>`) tag linking to the specified URL.
-  
-- `click(child: string, action: string, props: { target?: "self" | "modal", title?: string, postData?: { [k: string]: any } } & baseProps = {})`: Creates a clickable component with specified action and additional properties.
-  
-- `breadcrumb(items: { name: string, url: string }[])`: Creates a breadcrumb navigation component with provided items.
+- `link(href: string, child: Widget, props: { target?: "_self" | "_blank" } & baseProps = {})`: Creates a hyperlink (`<a>`) tag linking to the specified URL.
+
   
 - `text(child: string | number, props: baseProps & Text = {})`: Creates a text tag (`<span>`) with specified size, color, and weight.
   
@@ -260,41 +176,29 @@ Materials are functions to generate user interface
   
 - `avatar(username: string, avatarURL?: string, size: "sm" | "lg" | "medium" | string = "sm")`: Creates an avatar component based on the username and avatar URL, with optional size specification.
   
-- `button(text: string, props: buttonProps = {})`: Creates a button component with specified text and styles.
+- `button(child: Widget, props: buttonProps = {})`: Creates a button component with specified child, action and styles.
+
+- `textButton(_text: string, props: buttonProps & IconProps & BoxStyle & { iconName?: SvgFileNames, colorSchema?: ColorSchemas, inverColor?: boolean } = {})`: Creates a text button component with specified child, action and styles.
   
-- `iconButton(icon: any, props: buttonProps = {})`: Creates a button component with an icon.
+- `iconButton(iconName: SvgFileNames, props: buttonProps & IconProps & BoxStyle & { colorSchema?: ColorSchemas, inverColor?: boolean } = {})`: Creates a icon button component with specified child, action and styles.
   
-- `textButton(text: string, props: buttonProps = {})`: Creates a button component with text only.
   
-- `menuButton(text: string, props: buttonProps = {})`: Creates a button component styled as a menu button.
+- `menuButton(_text: string, props: buttonProps & IconProps & BoxStyle & { iconName?: SvgFileNames, colorSchema?: ColorSchemas, inverColor?: boolean } = {})`: Creates a button component styled as a menu button.
   
-- `filledButton(text: string, props: buttonProps = {})`: Creates a filled button component.
   
-- `elevatedButton(text: string, props: buttonProps = {})`: Creates an elevated button component.
+- `input(field: FieldProps)`: Creates an input field component with specified type, name, placeholder, etc.
   
-- `fadeIn(child: string | number)`: Creates a container with a fade-in effect, containing the provided content.
+- `password(field: FieldProps)`: Creates a password input field component.
   
-- `slideDown(child: string)`: Creates a container with a slide-down effect, containing the provided content.
-  
-- `section(title: string, body: string)`: Creates a section component with a title and body.
-  
-- `splitView(first: string, second: string,props)`: Creates a split view component with specified width percentages for first and second divisions.
-  
-- `input(field: FormField)`: Creates an input field component with specified type, name, placeholder, etc.
-  
-- `password(field: FormField)`: Creates a password input field component.
-  
-- `textarea(field: FormField & { autoHeight?: boolean, height?: number })`: Creates a text area component with optional auto-height and height properties.
+- `textarea(field: FieldProps & { autoHeight?: boolean, height?: number })`: Creates a text area component with optional auto-height and height properties.
   
 - `checkBox(props: { name: string, label: string, value: boolean })`: Creates a checkbox component with specified name, label, and value.
   
 - `radio(props: { name: string, options: { label: string, value: string }[], value?: string })`: Creates a radio button group component with specified options and value.
   
-- `select(field: FormField & { options?: selectOption[], groupedOptions?: groupOption[], defaultValue?: any })`: Creates a select dropdown component with options and optional grouped options.
+- `select(field: FieldProps & { options?: selectOption[], groupedOptions?: groupOption[], defaultValue?: any })`: Creates a select dropdown component with options and optional grouped options.
   
 - `formErrBox()`: Creates a form error message container.
   
-- `form(action: string, body: string | string[], props: PormProps = {})`: Creates a form component with specified action and body content, along with optional hidden fields.
+- `form(action: string, body: Widget | Widget[], props: FormProps = {}): Widget `: Creates a form component with specified action and body content, along with optional hidden fields.
   
-- `h(unsafe: string | number)`: Escapes unsafe characters in the provided string or number for safe HTML display.
-

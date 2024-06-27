@@ -1,0 +1,8 @@
+{
+      "name": "@frontless/js",
+      "version": "0.2.0",
+      "exports": {
+            ".": "./index.ts",
+            "./material": "./material/index.ts"
+      }
+}

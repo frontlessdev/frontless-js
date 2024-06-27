@@ -5,12 +5,8 @@ export type Route = { path: string, handler: Handler, method: string }
 
 let routes: Route[] = []
 
-export const router = (ctx: Ctx): { matched: boolean, handler: Handler } => {
+export  const router = (ctx: Ctx): { matched: boolean, handler: Handler } => {
     let { req } = ctx
-    let url = new URL("http://" + req.headers.host + '/' + req.url)
-
-    // convert "path/to/" to "path/to"
-    ctx.path = url.pathname.replace('//', '/').replace(/\/$/, "")
     for (let route of routes) {
         if (route_match_path(route, ctx)) {
             // got matchec route, run the handler
@@ -23,8 +19,9 @@ export const router = (ctx: Ctx): { matched: boolean, handler: Handler } => {
     return { matched: false, handler: () => { } }
 }
 
-export function append_route(path: string, handler: Handler) {
+export function route(path: string, handler: Handler) {
     routes.push({ path, handler, method: 'get' })
+    routes = sort_routes(routes)
 }
 
 function route_match_path(route: Route, ctx: Ctx): boolean {
@@ -84,4 +81,50 @@ function route_match_path(route: Route, ctx: Ctx): boolean {
     // all slices passed
     ctx.params = params
     return true
+}
+
+// make "/foo" prioriy higher than "/[foo]"
+function sort_routes(array: Route[]): Route[] {
+    function comparePaths(a: Route, b: Route): number {
+        // Helper function to compare objects based on path property
+        return compareStrings(a.path, b.path);
+    }
+
+    function compareStrings(a: string, b: string): number {
+        // Helper function to compare strings based on priority
+        if (a === b) return 0;
+        if (a === '') return 1; // Empty string has the lowest priority
+        if (b === '') return -1;
+
+        // Split strings into parts
+        const regex = /\[.*?\]|[^\/\[\]]+/g;
+        const partsA = a.match(regex) || [];
+        const partsB = b.match(regex) || [];
+
+        // Compare each part
+        const minLength = Math.min(partsA.length, partsB.length);
+        for (let i = 0; i < minLength; i++) {
+            const partA = partsA[i];
+            const partB = partsB[i];
+            if (partA !== partB) {
+                // Check if both parts contain brackets
+                const hasBracketA = partA.includes('[');
+                const hasBracketB = partB.includes('[');
+
+                // Prioritize non-bracket parts
+                if (!hasBracketA && hasBracketB) return -1;
+                if (hasBracketA && !hasBracketB) return 1;
+
+                // Compare bracketed parts lexicographically
+                return partA.localeCompare(partB);
+            }
+        }
+
+        // If all parts match up to the length of the shorter string,
+        // the longer string has higher priority
+        return partsA.length - partsB.length;
+    }
+
+    // Sort the array of objects using the custom comparison function
+    return array.sort(comparePaths);
 }
