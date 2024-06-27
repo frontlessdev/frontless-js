@@ -13,16 +13,16 @@ import { apis } from "../action";
 
 apis.image_beforuploading = image_beforuploading
 
-fs.readFile(__dirname + '/imageUploader.js', (err, data) => {
+fs.readFile(__dirname + '/imageUploaderWeb.js', (err, data) => {
       if (err) {
-            console.log("unable to read imageUploader.js\n", err)
+            console.log("unable to read imageUploaderWeb.js\n", err)
             process.exit(1)
       }
       let jsContent = data.toString()
       try {
             append_js(jsContent)
       } catch (e) {
-            console.log("unable to append imageUploader.js\n", e)
+            console.log("unable to append imageUploaderWeb.js\n", e)
             process.exit(1)
       }
 })
