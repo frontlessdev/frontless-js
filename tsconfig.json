@@ -13,10 +13,10 @@
         "noFallthroughCasesInSwitch": true,
         "lib": [
             "ES2022",
-            "dom"
         ],
     },
     "exclude": [
-        "frontless.js"
+        "web/*",
+        "material/imageUploaderWeb.js"
     ]
 }

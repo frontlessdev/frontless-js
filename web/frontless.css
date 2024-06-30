@@ -70,6 +70,7 @@ dd {
 
 .component {
     display: flex;
+    flex: 1;
     flex-direction: column;
     overflow: visible;
     transition: all 0.2s linear;

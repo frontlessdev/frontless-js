@@ -1,5 +1,7 @@
 package-lock.json
 test
+jsr.json
+bun.lockb
 # Logs
 logs
 *.log

@@ -10,10 +10,13 @@ import { append_js } from "../index";
 import { getCtx } from "../context";
 import { jsonPost } from "./misc";
 import { apis } from "../action";
-
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+let fileName = fileURLToPath(import.meta.url);
+let dirName = dirname(fileName)
 apis.image_beforuploading = image_beforuploading
 
-fs.readFile(__dirname + '/imageUploaderWeb.js', (err, data) => {
+fs.readFile(dirName + '/imageUploaderWeb.js', (err, data) => {
       if (err) {
             console.log("unable to read imageUploaderWeb.js\n", err)
             process.exit(1)

@@ -14,7 +14,7 @@ export class Color {
             private hue: number,
             private _saturation: string,
             private lightness: string,
-            private opacity: number
+            private opacity: number,
       ) { }
       html(): string {
             if (this.opacity == 1) {
@@ -43,6 +43,10 @@ export class Color {
        * @param saturation from 0% to 100%, larger is darker
        */
       saturation(saturation: string): Color {
+            if (this._saturation == '0%'){
+                  // if color is grey/white/black, saturation is locked to '0%'
+                  return this
+            }
             return new Color(this.hue, saturation, this.lightness, this.opacity)
       }
 }

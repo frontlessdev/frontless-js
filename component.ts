@@ -1,7 +1,8 @@
 import { getCtx } from './context'
 import { h } from './material'
 import { makeId, getMapKeyByValue } from './utils'
-const { log } = console
+import process from 'node:process'
+
 export type Json = { [k: string]: any }
 export let appendedJs = ''
 export let components: Map<string, { func: Function }> = new Map<string, {
@@ -28,27 +29,31 @@ export function setActionRes(res: ActionRes): void {
 
 function addComponent(name: string, func: Function) {
     if (components.has(name)) {
-        log("Err: Duplicated component name: ", name)
+        console.log("Err: Duplicated component name: ", name)
         process.exit(1)
     }
     components.set(name, {
         func: func
     })
 }
-export function Component<T extends Function>(fn: T): T {
+type NoArgFunction = () => Promise<Widget>;
+type OneArgFunction<T = { [k: string]: any }> = (props: T) => Promise<Widget>;
+
+export function Component(fn: NoArgFunction): NoArgFunction;
+export function Component<T extends { [k: string]: any }>(fn: OneArgFunction<T>): OneArgFunction<T>;
+export function Component(fn: any): any {
     let component_name = fn.name
     if (!component_name) {
-        log("Err: Empty component name ")
+        console.log("Err: Empty component name ")
         process.exit(1)
-        // dynamic name has been removed, because it not work after server restart
-        // component_name = makeId()
     }
     let newComponent = (async (...args: any) => {
         let ctx = getCtx()
         let { componentStack } = ctx._sys
         componentStack.push({ name: component_name, key: {}, action: "" })
-        let r = await fn(...args)
-        let cmt = componentStack.pop()
+        // let r = await fn(...args)
+        let r = await fn(args[0])
+        let cmt = componentStack.pop() ?? { action: "", key: {} }
         return {
             html: () => {
                 if (!r) {
@@ -75,33 +80,52 @@ export function Component<T extends Function>(fn: T): T {
     addComponent(component_name, newComponent)
     return newComponent
 }
-export function useAction<T extends { [k: string]: boolean | string | number }>(key?: T): T & { action: string } {
+export function useAction(key?: { [k: string]: any }, keys?: string[]): string | null {
     let ctx = getCtx()
     let cmt = ctx._sys.componentStack[ctx._sys.componentStack.length - 1]
     if (typeof cmt != 'object') {
         ctx.err('can not get component from componentStack')
     }
-    // init
     let component = components.get(cmt.name)
     if (!component) {
         ctx.err('component not found')
         return {} as any
     }
+    // init
     if (!ctx.body.component_action) {
         if (key) {
             cmt.key = key
         }
-        return { action: '', ...cmt.key } as any
+        return null
     }
+    // on posting
     else {
         try {
             cmt.key = JSON.parse(ctx.body.component_key)
+            if (key) {
+                if (keys) {
+                    for (let k of keys) {
+                        key[k] = cmt.key[k]
+                    }
+                }
+                else {
+                    for (let k in cmt.key) {
+                        key[k] = cmt.key[k]
+                    }
+                }
+                // allow only string and int
+                for (let k in key) {
+                    if (typeof key[k] != 'string' && typeof key[k] != 'number') {
+                        ctx.err('key field must be string or number: ' + k)
+                    }
+                }
+            }
         } catch (e) {
             ctx.err('failed parse key' + ctx.body.component_key)
         }
         let action = cmt.action = ctx.body.component_action
         ctx.body.component_action = ''
-        return { action, ...cmt.key } as any
+        return action
     }
 }
 

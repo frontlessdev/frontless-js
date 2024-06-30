@@ -9,6 +9,13 @@ import action from './action';
 import { makeId } from './utils';
 export let staticVersion: string = makeId()
 import { setDefaultSaturation } from './material';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import process from 'node:process'
+import 'dotenv/config'
+
+let fileName = fileURLToPath(import.meta.url);
+let dirName = dirname(fileName)
 type MiddleWare = (ctx: Ctx, next: Function) => Promise<void>
 type Config = {
     htmlErrorHandler?: (errMessage: string) => string,
@@ -119,7 +126,7 @@ let app: App = {
             let appended_elements = []
             // js
             if (req.url == `/main.${staticVersion}.js`) {
-                fs.readFile(__dirname + '/web/frontless.js', function (error, content) {
+                fs.readFile(dirName + '/web/frontless.js', function (error, content) {
                     res.writeHead(200, {
                         'Content-Type': 'text/javascript',
                         'Cache-Control': 'public, max-age=' + static_age
@@ -130,7 +137,7 @@ let app: App = {
             }
             // css
             if (req.url == `/main.${staticVersion}.css`) {
-                fs.readFile(__dirname + '/web/frontless.css', function (error, content) {
+                fs.readFile(dirName + '/web/frontless.css', function (error, content) {
                     res.writeHead(200, {
                         'Content-Type': 'text/css',
                         'Cache-Control': 'public, max-age=' + static_age
@@ -155,7 +162,6 @@ let app: App = {
                 const form = formidable({});
                 try {
                     let [body, files] = await form.parse(req);
-                    console.log('f body', body)
                     ctx.files = files
                     for (let k in body) {
                         let field = body[k]

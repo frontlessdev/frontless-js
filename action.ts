@@ -3,6 +3,7 @@ import { getCtx, Ctx } from "./context";
 import { components, actionMaps, handlers } from "./component";
 import { column } from "./material";
 import { jsonPost } from "./material/misc";
+import process from 'node:process'
 
 export let apis: { [k: string]: Function } = {}
 
@@ -62,7 +63,7 @@ const actionHandler = async () => {
         ctx.err("component not found")
         return
     }
-    let r = await component.func()
+    let r = await component.func({})
     if (ctx._sys.isSent) {
         return
     }

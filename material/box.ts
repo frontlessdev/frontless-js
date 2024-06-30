@@ -108,9 +108,12 @@ export type BoxStyle = {
       maxWidth?: number,
       shadow?: BoxShadow[],
       wrap?: "nowrap" | "wrap" | "wrap-reverse"
-}
-export type Box = BoxStyle & {
-      hoverStyle?: BoxStyle
+      hoverStyle?:{
+            color?:Color,
+            shadow?:BoxShadow[],
+            border?:BoxBorder,
+            borderRadius?:BorderRadius
+      }
 }
 
 function style2css(props?: BoxStyle): StandardPropertiesHyphen {
@@ -172,9 +175,9 @@ function style2css(props?: BoxStyle): StandardPropertiesHyphen {
       }
       return css
 }
-class _flex {
+class Box {
       public children: Widget[] = []
-      public props: baseProps & Box = {}
+      public props: baseProps & BoxStyle = {}
       html() {
             let { props } = this
             if (!props.class) {
@@ -214,8 +217,8 @@ class _flex {
       }
 }
 
-export function box(children: Widget[] | Widget, props: Box & baseProps = { direction: "row" }): Widget {
-      let f = new _flex()
+export function box(children: Widget[] | Widget, props: BoxStyle & baseProps = { direction: "row" }): Widget {
+      let f = new Box()
       if (!Array.isArray(children)) {
             children = [children]
       }
