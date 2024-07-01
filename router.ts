@@ -1,11 +1,13 @@
 import http from 'node:http';
 import { Ctx } from './context';
-export type Handler = (ctx: Ctx) => any
+import { Widget } from './component';
+import { text } from './material';
+export type Handler = (ctx: Ctx) => Promise<Widget>
 export type Route = { path: string, handler: Handler, method: string }
 
 let routes: Route[] = []
 
-export  const router = (ctx: Ctx): { matched: boolean, handler: Handler } => {
+export const router = (ctx: Ctx): { matched: boolean, handler: Handler } => {
     let { req } = ctx
     for (let route of routes) {
         if (route_match_path(route, ctx)) {
@@ -16,7 +18,7 @@ export  const router = (ctx: Ctx): { matched: boolean, handler: Handler } => {
             }
         }
     }
-    return { matched: false, handler: () => { } }
+    return { matched: false, handler: async () => { return text("404 not found") } }
 }
 
 export function route(path: string, handler: Handler) {

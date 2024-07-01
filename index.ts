@@ -7,40 +7,13 @@ import path from 'node:path';
 import formidable from 'formidable';
 import action from './action';
 import { makeId } from './utils';
-export let staticVersion: string = makeId()
-import { setDefaultSaturation } from './material';
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { staticVersion, appendedCss, setAppendedCss, setLayout, appendedJs, setAppConfig } from './misc';
+import type { Layout, AppConfig } from './misc';
 import process from 'node:process'
 import 'dotenv/config'
-
-let fileName = fileURLToPath(import.meta.url);
-let dirName = dirname(fileName)
 type MiddleWare = (ctx: Ctx, next: Function) => Promise<void>
-type Config = {
-    htmlErrorHandler?: (errMessage: string) => string,
-    /** used when your server is behind a proxy server. Default: x-forwarded-for */
-    proxyHeader?: string,
-    defaultSaturation?: string
-}
-export let appConfig: Config = {
 
-}
-let appended_js = ''
-let appended_css = ''
 
-export function append_js(content: string) {
-    appended_js += `
-{
-${content}
-}
-`
-}
-
-// default layout
-let layout = (body: string) => {
-    return `<!doctype html><html><head></head><body>${body}</body><html>`
-}
 
 // static file max-age
 const static_age = process.env.NODE_ENV == 'production' ? 3600 : 604800
@@ -62,15 +35,17 @@ async function call_middleware(index: number, ctx: Ctx, route_handler: (...args:
     }
 }
 type App = {
-    route: (path: string, handler: Handler) => void,
+    page: (path: string, handler: Handler) => void,
     errorHandler: (ctx: Ctx, e: any) => void,
     use: (fn: MiddleWare) => void,
     htmlErrorHandler: (message: string) => string,
-    listen: (port: number) => void
+    listen: (port: number) => void,
+    setLayout: (fn: Layout) => void,
+    setCssFile: (filePath: string) => void
 
 }
 let app: App = {
-    route: route,
+    page: route,
     errorHandler: (ctx: Ctx, e: any) => {
         let message = ''
         if (typeof e == 'object') { // sys generated err
@@ -121,23 +96,22 @@ let app: App = {
         middlewares.unshift(fn)
     },
     listen: (port: number) => {
-        load_pages()
         const server = http.createServer(async (req, res) => {
             let appended_elements = []
             // js
             if (req.url == `/main.${staticVersion}.js`) {
-                fs.readFile(dirName + '/web/frontless.js', function (error, content) {
+                fs.readFile(import.meta.dirname + '/web/frontless.js', function (error, content) {
                     res.writeHead(200, {
                         'Content-Type': 'text/javascript',
                         'Cache-Control': 'public, max-age=' + static_age
                     });
-                    res.end(content + appended_js, 'utf-8');
+                    res.end(content + appendedJs, 'utf-8');
                 })
                 return
             }
             // css
             if (req.url == `/main.${staticVersion}.css`) {
-                fs.readFile(dirName + '/web/frontless.css', function (error, content) {
+                fs.readFile(import.meta.dirname + '/web/frontless.css', function (error, content) {
                     res.writeHead(200, {
                         'Content-Type': 'text/css',
                         'Cache-Control': 'public, max-age=' + static_age
@@ -146,7 +120,7 @@ let app: App = {
                         res.end('/* error reading frontless.css */', 'utf-8');
                     }
                     else {
-                        res.end(content + "\n/* appended css */\n" + appended_css, 'utf-8');
+                        res.end(content + "\n/* appended css */\n" + appendedCss, 'utf-8');
                     }
                 })
                 return
@@ -156,7 +130,7 @@ let app: App = {
                 serve_static(req, res)
                 return
             }
-            let ctx = initCtx(req, res, layout, app.errorHandler)
+            let ctx = initCtx(req, res, app.errorHandler)
 
             if (req.method == 'POST') {
                 const form = formidable({});
@@ -187,7 +161,7 @@ let app: App = {
 
             // route
             let pageHandler: () => void
-            if (req.url?.match(/\/action\/[\d\w_\-]+\/[\d\w_\-]+/)) {
+            if (req.url?.match(/\/action\/[\d\w_\-]+\/[\d\w_\-]+/) && req.method == "POST") {
                 pageHandler = action
             }
             else {
@@ -229,28 +203,11 @@ let app: App = {
         });
         server.listen(port);
         console.log(`listening on port ${port}`)
+    },
+    setLayout: setLayout,
+    setCssFile: (filePath: string) => {
+        setAppendedCss(fs.readFileSync(path.resolve(process.cwd(), filePath), { encoding: 'utf8', flag: 'r' }))
     }
-}
-
-// load routes and page components from "pages" folder
-export function load_pages(path = 'pages'): void {
-    fs.readdirSync(process.cwd() + '/' + path).forEach(async function (filename) {
-        let reletive_filepath = path + '/' + filename;
-        let filepath = process.cwd() + '/' + reletive_filepath
-        if (fs.lstatSync(filepath).isDirectory()) {
-            load_pages(reletive_filepath)
-        }
-        else if (filename == '_layout.ts' || filename == '_layout.js') {
-            let render_ = await import(filepath)
-            layout = render_.default
-        }
-        else if (filename == '_layout.css') {
-            appended_css = fs.readFileSync(filepath, { encoding: 'utf8', flag: 'r' })
-        }
-        else if (filename.match(/\.js|\.ts$/)) {
-            append_route_from_file({ path: reletive_filepath, name: reletive_filepath })
-        }
-    })
 }
 
 // append routes based on file path
@@ -308,14 +265,13 @@ function serve_static(req: http.IncomingMessage, res: http.ServerResponse) {
 }
 
 // export main api
-export default function Frontless(config: Config = {}): App {
+export default function Frontless(config: AppConfig & {
+    htmlErrorHandler?: (errMessage: string) => string,
+} = {}): App {
     if (typeof config.htmlErrorHandler == 'function') {
         app.htmlErrorHandler = config.htmlErrorHandler
     }
-    if (config.defaultSaturation) {
-        setDefaultSaturation(config.defaultSaturation)
-    }
-    appConfig = config
+    setAppConfig(config)
     return app
 }
 

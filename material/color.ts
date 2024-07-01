@@ -1,4 +1,8 @@
 let defaultSaturation = '60%'
+import { appConfig } from "../misc"
+if (appConfig?.defaultSaturation) {
+      defaultSaturation = appConfig.defaultSaturation
+}
 export function setDefaultSaturation(saturation: string) {
       defaultSaturation = saturation
 }
@@ -43,7 +47,7 @@ export class Color {
        * @param saturation from 0% to 100%, larger is darker
        */
       saturation(saturation: string): Color {
-            if (this._saturation == '0%'){
+            if (this._saturation == '0%') {
                   // if color is grey/white/black, saturation is locked to '0%'
                   return this
             }

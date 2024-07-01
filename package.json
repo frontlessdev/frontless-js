@@ -1,7 +1,15 @@
 {
   "name": "frontlessjs",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./index"
+    },
+    "./material": {
+      "import": "./material"
+    }
+  },
   "dependencies": {
     "@types/cookie": "^0.6.0",
     "@types/formidable": "^3.4.5",

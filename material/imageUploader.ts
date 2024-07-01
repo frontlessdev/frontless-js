@@ -6,24 +6,21 @@ import { button, textButton } from "./button";
 import { h } from "./misc";
 import type { Widget, useAction, Component } from "../component";
 import fs from 'node:fs';
-import { append_js } from "../index";
+import { appendJs } from "../misc";
 import { getCtx } from "../context";
 import { jsonPost } from "./misc";
 import { apis } from "../action";
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-let fileName = fileURLToPath(import.meta.url);
-let dirName = dirname(fileName)
+import process from 'node:process'
 apis.image_beforuploading = image_beforuploading
 
-fs.readFile(dirName + '/imageUploaderWeb.js', (err, data) => {
+fs.readFile(import.meta.dirname + '/imageUploaderWeb.js', (err, data) => {
       if (err) {
             console.log("unable to read imageUploaderWeb.js\n", err)
             process.exit(1)
       }
       let jsContent = data.toString()
       try {
-            append_js(jsContent)
+            appendJs(jsContent)
       } catch (e) {
             console.log("unable to append imageUploaderWeb.js\n", e)
             process.exit(1)

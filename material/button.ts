@@ -11,7 +11,6 @@ type buttonStyle = {
 }
 export type buttonProps = {
       action?: string,
-      link?: string,
       target?: "self" | "modal",
       disabled?: boolean,
       title?: string,
@@ -46,9 +45,6 @@ class Button {
                   ...this.props.boxStyle,
                   hoverStyle: this.props.hoverStyle
             }).html()
-            if (props.link) {
-                  return `<a href="${props.link}">${childStr}</a>`
-            }
             if (props.action) {
                   if (typeof props.title == 'string') {
                         titleStr = ` title="${h(props.title)}"`
@@ -77,7 +73,21 @@ export function button(child: Widget, props: buttonProps = {}): Button {
       return new Button(typeof child == 'string' ? text(child) : child, props)
 }
 
-export function textButton(_text: string, props: buttonProps & IconProps & BoxStyle & { iconName?: SvgFileNames, colorSchema?: ColorSchemas, inverColor?: boolean } = {}): Button {
+
+let buttonSizes = {
+      sm: 16,
+      md: 20,
+      lg: 25,
+      xl: 32,
+      "2x": 48,
+      "4x": 64
+}
+function buttonSize2RealSize(size: keyof typeof buttonSizes) {
+
+}
+
+
+export function textButton(_text: string, props: buttonProps & BoxStyle & { iconName?: SvgFileNames, colorSchema?: ColorSchemas, inverColor?: boolean, size?: keyof typeof buttonSizes } = {}): Button {
       let child
       if (!props.colorSchema) {
             props.colorSchema = "grey"
@@ -86,7 +96,7 @@ export function textButton(_text: string, props: buttonProps & IconProps & BoxSt
       if (props.iconName) {
             child = row([
                   icon(props.iconName, { size: props.size ?? 'md', color: foregroundColor }),
-                  text(_text, { color: foregroundColor })
+                  text(_text, { color: foregroundColor, size: props.size ? buttonSizes[props.size] : undefined })
             ], { gap: 3 })
             if (!props.title) {
                   props.title = _text
@@ -110,7 +120,7 @@ export function textButton(_text: string, props: buttonProps & IconProps & BoxSt
 }
 
 
-export function iconButton(iconName: SvgFileNames, props: buttonProps & IconProps & BoxStyle & { colorSchema?: ColorSchemas, inverColor?: boolean } = {}): Button {
+export function iconButton(iconName: SvgFileNames, props: buttonProps & BoxStyle & { colorSchema?: ColorSchemas, inverColor?: boolean, size?: keyof typeof buttonSizes } = {}): Button {
       let child
       if (!props.colorSchema) {
             props.colorSchema = "grey"
@@ -130,7 +140,7 @@ export function iconButton(iconName: SvgFileNames, props: buttonProps & IconProp
       props.hoverStyle.color = colors[props.colorSchema].shade(props.inverColor ? 700 : 100)
       return button(child, props)
 }
-export function menuButton(_text: string, props: buttonProps & IconProps & BoxStyle & { iconName?: SvgFileNames, colorSchema?: ColorSchemas, inverColor?: boolean } = {}): Button {
+export function menuButton(_text: string, props: buttonProps & BoxStyle & { iconName?: SvgFileNames, colorSchema?: ColorSchemas, inverColor?: boolean } = {}): Button {
       if (!props.boxStyle) {
             props.boxStyle = {}
       }

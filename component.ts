@@ -4,7 +4,6 @@ import { makeId, getMapKeyByValue } from './utils'
 import process from 'node:process'
 
 export type Json = { [k: string]: any }
-export let appendedJs = ''
 export let components: Map<string, { func: Function }> = new Map<string, {
     func: Function
 }>()
@@ -16,17 +15,6 @@ export interface Widget {
     html(): string
     json(): any
 }
-export function appendJs(content: string) {
-    appendedJs += '{' + content + '}'
-}
-
-export type ActionRes = {
-    widget?: string,
-}
-export function setActionRes(res: ActionRes): void {
-    getCtx()._sys.actionRes = res
-}
-
 function addComponent(name: string, func: Function) {
     if (components.has(name)) {
         console.log("Err: Duplicated component name: ", name)

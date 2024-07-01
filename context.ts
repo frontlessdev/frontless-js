@@ -3,9 +3,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import cookie from 'cookie'
 import { parse as url_parse } from 'node:url';
 import { styleStore } from './material';
-import { appConfig } from './index';
-import { staticVersion } from './index';
-import type { ActionRes, Widget } from './component';
+import type { Widget } from './component';
+import { WebLayout, appConfig, staticVersion } from './misc';
 
 interface req extends http.IncomingMessage {
     body?: any
@@ -31,7 +30,6 @@ export type Ctx = {
     refresh: () => void
     _sys: {
         isSent: boolean,
-        actionRes: ActionRes,
         cssUpdated?: { id: string, str: string, hoverStr?: string }[]
         componentStack: any[],
         [k: string]: any,
@@ -58,7 +56,7 @@ export function getCtx(): Ctx {
 }
 
 
-export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, layout: (body: string) => Promise<string> | string, errorHandler: (ctx: Ctx, error: any) => void): Ctx {
+export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, errorHandler: (ctx: Ctx, error: any) => void): Ctx {
 
     let cookies: string[] = []
     let setcookies = () => {
@@ -77,7 +75,6 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
             totalQueries: 0,
             queries: [],
             componentStack: [],
-            actionRes: {}
         },
         cookie: cookie.parse(req.headers.cookie || ''),
         json: (json: { [k: string]: any }) => {
@@ -130,10 +127,10 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, lay
             // need to catch error because template support components
             try {
                 if (appended_elements.length) {
-                    html = await layout(appended_elements.join("") + element.html())
+                    html = await WebLayout(appended_elements.join("") + element.html())
                 }
                 else {
-                    html = await layout(element.html())
+                    html = await WebLayout(element.html())
                 }
             } catch (e) {
                 errorHandler(ctx, e)
