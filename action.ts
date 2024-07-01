@@ -4,7 +4,7 @@ import { components, actionMaps, handlers } from "./component";
 import { column } from "./material";
 import { jsonPost } from "./material/misc";
 import process from 'node:process'
-
+import type { pageResponse } from "./context";
 export let apis: { [k: string]: Function } = {}
 
 let apiUrl = process.env.FRONTLESS_API_DEV_URL ?? 'https://api.frontless.dev/v1'
@@ -67,19 +67,19 @@ const actionHandler = async () => {
     if (ctx._sys.isSent) {
         return
     }
-    // if got any return from action, stop calling default component
-    let { actionRes } = ctx._sys
+    // let { actionRes } = ctx._sys
+    let actionRes: pageResponse = {}
     if (typeof r == 'object' && typeof r.html == 'function' && typeof r.json == 'function') {
         if (ctx.req.headers['user-agent'] == 'dart') {
-            actionRes.widget = r.json()
+            actionRes.content = r.json()
         } else {
-            actionRes.widget = r.html()
+            actionRes.content = r.html()
         }
         handle_res(ctx, actionRes)
     }
 }
 
-function handle_res(ctx: Ctx, res: any) {
+function handle_res(ctx: Ctx, res: pageResponse) {
     if (ctx._sys.isSent) {
         return
     }
@@ -87,22 +87,12 @@ function handle_res(ctx: Ctx, res: any) {
     if (Array.isArray(ctx._sys?.cssUpdated)) {
         cssUpdated = "\n" + ctx._sys.cssUpdated.map(e => `.${e.id} {${e.str}}`).join("\n")
     }
-    if (typeof res == 'undefined') {
-        ctx.err('undefined res')
-        return
-    }
-    if (typeof res == 'string') {
-        ctx.json({ widget: res, css: cssUpdated })
-    }
-    else if (Array.isArray(res)) {
-        ctx.json({ widget: column(res), css: cssUpdated })
-    }
-    else if (typeof res == 'object') {
+    if (typeof res == 'object') {
         res.css = cssUpdated
         ctx.json(res)
     }
     else {
-        ctx.err('no res')
+        ctx.err('undefined res')
     }
 }
 export default actionHandler;

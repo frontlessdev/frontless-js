@@ -7,14 +7,14 @@ onClick(".modal-close-btn", (ele) => {
 // open a modal
 onClick(".modal_btn", async function (ele) {
     handle_component_btn_click(ele, async (component, data, action_url) => {
-        let modal = modal_before_submit(component, ele.getAttribute("title"))
+        let modal = before_modal_submit(component, ele.getAttribute("title"))
         let res = await jsonPost(action_url, data)
-        modal_after_submit(res)
+        after_modal_submit(res)
     })
 })
 
 // target modal 
-function modal_before_submit(component, title = null) {
+function before_modal_submit(component, title = null) {
     let modal = document.querySelector(".commonModal")
     if (!modal) {
         component.insertAdjacentHTML("beforeend", modal_template());
@@ -26,7 +26,7 @@ function modal_before_submit(component, title = null) {
     }
     return modal
 }
-function modal_after_submit(res) {
+function after_modal_submit(res) {
     document.querySelector(`.modal-body`).style.maxHeight = '700px'
     setTimeout(() => {
         document.querySelector(`.modal-body`).style.overflowY = 'auto'
@@ -42,7 +42,7 @@ function modal_after_submit(res) {
         modal_body.innerHTML = res.err
     }
     else {
-        modal_body.innerHTML = res.widget
+        modal_body.innerHTML = res.content
     }
     setTimeout(() => {
         modal_body.querySelectorAll('input[type="text"],input[type="password"],textarea')[0]?.focus()
@@ -104,7 +104,7 @@ onSubmit(".component_form", async (ele) => {
         data = { ...data, ...formDataObject }
         component.querySelector(".form-error-box").style.display = 'none'
         if (ele.classList.contains("target_modal")) {
-            modal_before_submit(component)
+            before_modal_submit(component)
         }
         let res = await jsonPost(action_url, data)
         remove_loader(ele)
@@ -116,7 +116,7 @@ onSubmit(".component_form", async (ele) => {
         }
         else {
             if (ele.classList.contains("target_modal")) {
-                modal_after_submit(res)
+                after_modal_submit(res)
             }
             else {
                 component_handle_res(component, res)
@@ -142,7 +142,7 @@ function escapeHtml(s) {
 
 //
 function component_handle_res(component, res) {
-    log('handle res', res,)
+    log('handle res', res)
     let live_modal = document.querySelector(".commonModal")
     if (res.act == 'redirect') {
         log('redirecting')
@@ -152,20 +152,6 @@ function component_handle_res(component, res) {
     else if (res.act == 'refresh') {
         log('refreshing')
         window.location.reload();
-        return
-    }
-    else if (typeof res.modal == 'string') {
-        log('create modal')
-        if (!live_modal) {
-            component.insertAdjacentHTML("beforeend", modal_template())
-            live_modal = document.querySelector(".commonModal")
-        }
-        log('update modal body')
-        live_modal.querySelector(".modal-body").innerHTML = res.modal
-        // cm.fadeIn("fast")
-        setTimeout(() => {
-            live_modal.querySelector(`input[type="text"],input[type="password"], textarea`).focus();
-        }, 100);
         return
     }
     else {
@@ -179,8 +165,8 @@ function component_handle_res(component, res) {
         update_dynamic_css(res.css)
     }
 
-    if (typeof res.widget == 'string') {
-        if (res.widget == '') {
+    if (typeof res.content == 'string') {
+        if (res.content == '') {
             component.style.height = component.offsetHeight + 'px'
             component.style.overflow = 'hidden'
             setTimeout(() => {
@@ -191,7 +177,7 @@ function component_handle_res(component, res) {
             }, 210);
         }
         else {
-            component.innerHTML = res.widget
+            component.innerHTML = res.content
             // let div = document.createElement('div');
             // div.innerHTML = res.html;
             // traverseNodes(component, div, 0)
@@ -276,10 +262,8 @@ document.addEventListener("input", function (e) {
     if (e.target.classList.contains("autoheight")) {
         e.target.style.height = 'auto';
         e.target.style.height = (e.target.scrollHeight) + "px";
-
     }
-}
-    , false);
+}, false);
 
 
 // json post

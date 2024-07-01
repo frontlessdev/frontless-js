@@ -7,7 +7,7 @@ import path from 'node:path';
 import formidable from 'formidable';
 import action from './action';
 import { makeId } from './utils';
-import { staticVersion, appendedCss, setAppendedCss, setLayout, appendedJs, setAppConfig } from './misc';
+import { staticVersion, appendedCss, setAppendedCss, setLayout, appendedJs, setAppConfig, appConfig } from './misc';
 import type { Layout, AppConfig } from './misc';
 import process from 'node:process'
 import 'dotenv/config'
@@ -38,7 +38,6 @@ type App = {
     page: (path: string, handler: Handler) => void,
     errorHandler: (ctx: Ctx, e: any) => void,
     use: (fn: MiddleWare) => void,
-    htmlErrorHandler: (message: string) => string,
     listen: (port: number) => void,
     setLayout: (fn: Layout) => void,
     setCssFile: (filePath: string) => void
@@ -86,11 +85,8 @@ let app: App = {
             ctx.res.writeHead(200, {
                 'Content-Type': 'text/html',
             });
-            ctx.res.end(app.htmlErrorHandler(message))
+            ctx.res.end(appConfig.htmlErrorHandler ? appConfig.htmlErrorHandler(message) : message)
         }
-    },
-    htmlErrorHandler: (message: string): string => {
-        return `<html><title>Error</title><body><pre>${message}</pre></body></html>`
     },
     use: (fn: MiddleWare) => {
         middlewares.unshift(fn)
@@ -170,7 +166,7 @@ let app: App = {
                     pageHandler = async () => {
                         try {
                             let pageWidget = await r.handler(ctx)
-                            ctx.close(pageWidget)
+                            ctx.page(pageWidget)
                         } catch (e) {
                             throw e
                         }
@@ -180,7 +176,8 @@ let app: App = {
                     res.writeHead(404, {
                         'Content-Type': 'text/html',
                     });
-                    res.end(app.htmlErrorHandler('path not found ' + req.url))
+                    const msg = 'path not found ' + req.url
+                    res.end(appConfig.htmlErrorHandler ? appConfig.htmlErrorHandler(msg) : msg)
                     return
                 }
             }
@@ -265,12 +262,7 @@ function serve_static(req: http.IncomingMessage, res: http.ServerResponse) {
 }
 
 // export main api
-export default function Frontless(config: AppConfig & {
-    htmlErrorHandler?: (errMessage: string) => string,
-} = {}): App {
-    if (typeof config.htmlErrorHandler == 'function') {
-        app.htmlErrorHandler = config.htmlErrorHandler
-    }
+export default function Frontless(config: AppConfig = {}): App {
     setAppConfig(config)
     return app
 }

@@ -16,7 +16,7 @@ export type Ctx = {
     body: { [k: string]: any }
     html: string
     json: Function
-    close: (element: Widget) => void
+    page: (element: Widget) => void
     append: (output: string | string[]) => void
     params: { [k: string]: any }
     query: { [k: string]: any }
@@ -55,7 +55,11 @@ export function getCtx(): Ctx {
     return asyncLocalStorage.getStore() as Ctx;
 }
 
-
+export type pageResponse = {
+    content?: any,
+    act?: "redirect" | "refresh",
+    css?: string
+}
 export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, errorHandler: (ctx: Ctx, error: any) => void): Ctx {
 
     let cookies: string[] = []
@@ -99,7 +103,7 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, err
                 appended_elements.push(output)
             }
         },
-        close: async (element: Widget) => {
+        page: async (element: Widget) => {
             if (ctx._sys.isSent) {
                 return
             }
@@ -107,7 +111,7 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, err
                 if (typeof element != 'object' || typeof element.json != 'function') {
                     ctx.json({ err: 'not a Widget' })
                 }
-                ctx.json({ widget: element.json() })
+                ctx.json({ content: element.json() })
                 return
             }
             ctx._sys.isSent = true

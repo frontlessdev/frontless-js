@@ -4,12 +4,17 @@ import { makeId } from "./utils";
 export type AppConfig = {
       /** used when your server is behind a proxy server. Default: x-forwarded-for */
       proxyHeader?: string,
-      defaultSaturation?: string
+      defaultSaturation?: string,
+      htmlErrorHandler?: (errMessage: string) => string
 }
-export let appConfig: AppConfig = {}
+export let appConfig: AppConfig = {
+      htmlErrorHandler: (message: string): string => {
+            return `<html><title>Error</title><body><pre>${message}</pre></body></html>`
+      }
+}
 export function setAppConfig(config: AppConfig) {
       if (typeof config == 'object') {
-            appConfig = config
+            appConfig = { ...appConfig, ...config }
       }
 }
 
