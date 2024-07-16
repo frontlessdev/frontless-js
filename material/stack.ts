@@ -1,4 +1,4 @@
-import { box, Box, BoxStyle } from "./box";
+import { box, BoxStyle } from "./box";
 import type { Widget } from "../component";
 
 type Position = {

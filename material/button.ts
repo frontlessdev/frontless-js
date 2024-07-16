@@ -74,20 +74,7 @@ export function button(child: Widget, props: buttonProps = {}): Button {
 }
 
 
-let buttonSizes = {
-      sm: 16,
-      md: 20,
-      lg: 25,
-      xl: 32,
-      "2x": 48,
-      "4x": 64
-}
-function buttonSize2RealSize(size: keyof typeof buttonSizes) {
-
-}
-
-
-export function textButton(_text: string, props: buttonProps & BoxStyle & { iconName?: SvgFileNames, colorSchema?: ColorSchemas, inverColor?: boolean, size?: keyof typeof buttonSizes } = {}): Button {
+export function textButton(_text: string, props: buttonProps & { iconName?: SvgFileNames, colorSchema?: ColorSchemas, inverColor?: boolean, size?: number } = {}): Button {
       let child
       if (!props.colorSchema) {
             props.colorSchema = "grey"
@@ -95,15 +82,15 @@ export function textButton(_text: string, props: buttonProps & BoxStyle & { icon
       let foregroundColor = colors[props.colorSchema].shade(props.inverColor ? 100 : 800).saturation('80%')
       if (props.iconName) {
             child = row([
-                  icon(props.iconName, { size: props.size ?? 'md', color: foregroundColor }),
-                  text(_text, { color: foregroundColor, size: props.size ? buttonSizes[props.size] : undefined })
+                  icon(props.iconName, { size: props.size, color: foregroundColor }),
+                  text(_text, { color: foregroundColor, size: props.size })
             ], { gap: 3 })
             if (!props.title) {
                   props.title = _text
             }
       }
       else {
-            child = text(_text, { color: foregroundColor })
+            child = text(_text, { color: foregroundColor, size: props.size })
       }
       if (!props.boxStyle) {
             props.boxStyle = {}
@@ -120,13 +107,13 @@ export function textButton(_text: string, props: buttonProps & BoxStyle & { icon
 }
 
 
-export function iconButton(iconName: SvgFileNames, props: buttonProps & BoxStyle & { colorSchema?: ColorSchemas, inverColor?: boolean, size?: keyof typeof buttonSizes } = {}): Button {
+export function iconButton(iconName: SvgFileNames, props: buttonProps & BoxStyle & { colorSchema?: ColorSchemas, inverColor?: boolean, size?: number } = {}): Button {
       let child
       if (!props.colorSchema) {
             props.colorSchema = "grey"
       }
       let foregroundColor = colors[props.colorSchema].shade(props.inverColor ? 100 : 800).saturation('80%')
-      child = icon(iconName, { size: props.size ?? 'md', color: foregroundColor })
+      child = icon(iconName, { size: props.size, color: foregroundColor })
 
       if (!props.boxStyle) {
             props.boxStyle = {}

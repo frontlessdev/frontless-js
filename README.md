@@ -17,7 +17,7 @@ bun add frontlessjs
 
 ### Hello World
 Create a index.ts in your project
-```console
+```typescript
 // index.ts
 import frontless, { type Widget } from "frontlessjs"
 import { text } from "frontlessjs/material"
@@ -33,5 +33,5 @@ bun index.ts
 ```
 Then visit `localhost:3000` in your browser to see the page!
 
-### Learn More
+### What's next
 Doc&Examples: https://www.frontless.dev/

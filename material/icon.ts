@@ -2,17 +2,9 @@ import type { StandardPropertiesHyphen } from "csstype"
 import { SvgFileNames, svgContent } from "../.resource/svgSource"
 import type { Color } from "./color"
 import { style_class_to_str } from "./misc"
-let iconSizes = {
-      sm: 16,
-      md: 20,
-      lg: 25,
-      xl: 32,
-      "2x": 48,
-      "4x": 64
-}
 
 export type IconProps = {
-      size?: keyof typeof iconSizes,
+      size?: number,
       color?: Color
 }
 type HoverStyle = {
@@ -23,7 +15,7 @@ type HoverStyle = {
 
 function style2css(props: IconProps & HoverStyle = {}): StandardPropertiesHyphen {
       let style: StandardPropertiesHyphen = {}
-      style.width = style.height = (props.size ? iconSizes[props.size] : 20) + 'px'
+      style.width = style.height = (props.size ? props.size : 20) + 'px'
       style.color = props.color?.html()
       return style
 }
