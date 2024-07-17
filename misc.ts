@@ -32,9 +32,7 @@ export function setLayout(l: Layout) {
       WebLayout = l
 }
 // default layout
-export let WebLayout: Layout = async (body: string) => {
-      return `<!doctype html><html><head></head><body>${body}</body><html>`
-}
+export let WebLayout: Layout
 
 export function appendJs(content: string) {
       appendedJs += `

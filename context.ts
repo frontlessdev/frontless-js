@@ -130,6 +130,9 @@ export function initCtx(req: http.IncomingMessage, res: http.ServerResponse, err
             let html
             // need to catch error because template support components
             try {
+                if (!WebLayout) {
+                    html = ''
+                }
                 if (appended_elements.length) {
                     html = await WebLayout(appended_elements.join("") + element.html())
                 }
